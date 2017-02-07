@@ -1,0 +1,47 @@
+Exists Maven Plugin
+
+  Check if a maven artifact exists or if the just built artifact is identical to the already installed / deployed artifact.
+
+  There are two principal use cases:
+
+  [[1]] Skip deployment if the stable (non-snapshot) version already exists in the repository
+
+  [[2]] Skip installation/deployment if the just built artifact matches the existing artifact.
+    This use case requires setting the createChecksum property true so that the artifact checksums can be compared.
+
+  []
+
+* Goals Overview
+
+  * {{{./local-mojo.html}exists:local}} Set maven.install.skip property to true if just built artifact
+   is same as previously built artifact in local repository.
+
+  * {{{./remote-mojo.html}exists:remote}} Set maven.deploy.skip property to true if just built artifact
+   is same as previously built artifact in remote repository.
+
+* Usage
+
+  General instructions on how to use Exists Maven Plugin can be found in the {{{./plugin-info.html#Usage}usage section}}. Some more
+  specific use cases are described in the examples given below.
+
+  In case you still have questions regarding the plugin's usage, please have a look at the {{{./faq.html}FAQ}}.
+
+  If you feel like the plugin is missing a feature or has a defect, you can create a
+  {{{https://github.com/chonton/exists-maven-plugin/pulls}pull request}} or
+  {{{https://github.com/chonton/exists-maven-plugin/issues}issue}}.
+  When creating a new issue, please provide a comprehensive description of your
+  concern. For fixing bugs it is essential to be able to reproduce your problem.
+  Debug logs, POMs, or little demo projects attached to the issue is appreciated.
+  Pull requests are more likely to get attention.
+
+* Examples
+
+  To provide you with better understanding of some usages of Exists Maven Plugin,
+  you can take a look into the following examples:
+
+  * {{{./examples/check-existence.html}Check existence}}
+
+  * {{{./examples/using-checksums.html}Using checksums}}
+
+  * {{{./examples/distribution-management.html}Configuring repository and snapshotRepository for use by remote goal}}
+

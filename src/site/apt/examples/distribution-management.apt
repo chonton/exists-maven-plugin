@@ -1,0 +1,25 @@
+Using the remote goal requires configuring the remote repository
+
+  Configuring the remote repository is accomplished in the distributionManagement section of your pom.
+  An example is below.
+
++---+
+  <distributionManagement>
+
+    <repository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+    </repository>
+
+    <snapshotRepository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
+
+    <site>
+      <id>github</id>
+      <url>https://chonton.github.com/exists-maven-plugin/${project.version}</url>
+    </site>
+
+  </distributionManagement>
++---+

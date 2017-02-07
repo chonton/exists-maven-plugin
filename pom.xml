@@ -4,7 +4,7 @@
 
   <groupId>org.honton.chas</groupId>
   <artifactId>exists-maven-plugin</artifactId>
-  <version>0.0.1</version>
+  <version>0.0.2</version>
   <packaging>maven-plugin</packaging>
 
   <name>Artifact Exists Maven Plugin</name>
@@ -47,15 +47,37 @@
       <url>https://oss.sonatype.org/content/repositories/snapshots</url>
     </snapshotRepository>
 
+    <site>
+      <id>github</id>
+      <url>https://chonton.github.com/exists-maven-plugin/${project.version}</url>
+    </site>
+
   </distributionManagement>
 
   <properties>
     <maven.compiler.source>1.7</maven.compiler.source>
     <maven.compiler.target>1.7</maven.compiler.target>
+
+    <!-- use org.sonatype.plugins:nexus-staging-maven-plugin instead of org.apache.maven.plugins:maven-deploy-plugin -->
+    <maven.deploy.skip>true</maven.deploy.skip>
+    <!-- use com.github.github:site-maven-plugin instead of org.apache.maven.plugins:maven-site-plugin -->
+    <maven.site.deploy.skip>true</maven.site.deploy.skip>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
   <dependencies>
+
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-artifact</artifactId>
+      <version>3.0</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-model</artifactId>
+      <version>3.0</version>
+    </dependency>
 
     <dependency>
       <groupId>org.apache.maven</groupId>
@@ -76,18 +98,20 @@
       <scope>provided</scope>
     </dependency>
 
+    <dependency>
+      <groupId>org.codehaus.plexus</groupId>
+      <artifactId>plexus-utils</artifactId>
+      <version>1.5.15</version>
+    </dependency>
   </dependencies>
 
   <build>
     <plugins>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.3</version>
-        <configuration>
-          <source>1.7</source>
-          <target>1.7</target>
-        </configuration>
       </plugin>
 
       <plugin>
@@ -95,7 +119,7 @@
         <artifactId>maven-plugin-plugin</artifactId>
         <version>3.4</version>
         <configuration>
-          <goalPrefix>checkstats</goalPrefix>
+          <goalPrefix>exists</goalPrefix>
           <extractors>
             <extractor>java-annotations</extractor>
           </extractors>
@@ -111,7 +135,75 @@
     </plugins>
   </build>
 
+  <reporting>
+    <plugins>
+      <plugin>
+        <artifactId>maven-project-info-reports-plugin</artifactId>
+        <version>2.8</version>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>index</report>
+              <report>project-team</report>
+              <report>license</report>
+              <report>dependency-info</report>
+              <report>dependency-management</report>
+              <report>distribution-management</report>
+              <report>plugin-management</report>
+              <report>cim</report>
+              <report>scm</report>
+              <report>summary</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-plugin-plugin</artifactId>
+        <version>3.4</version>
+      </plugin>
+    </plugins>
+  </reporting>
+
   <profiles>
+    <!-- publish site to github,
+    1. mvn [clean install] site
+    2. mvn -P gh-pages pre-site
+    -->
+    <profile>
+      <id>gh-pages</id>
+      <build>
+        <plugins>
+          <!-- push stage to github gh-pages -->
+          <plugin>
+            <groupId>com.github.github</groupId>
+            <artifactId>site-maven-plugin</artifactId>
+            <version>0.11</version>
+            <configuration>
+              <message>Site documentation</message>
+              <path>${project.version}</path>
+              <merge>false</merge>
+              <server>github</server>
+              <repositoryName>exists-maven-plugin</repositoryName>
+              <repositoryOwner>chonton</repositoryOwner>
+            </configuration>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>site</goal>
+                </goals>
+                <phase>pre-site</phase>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <!-- release to github
+    mvn clean deploy -P release
+    -->
     <profile>
       <id>release</id>
       <build>
@@ -177,4 +269,5 @@
       </build>
     </profile>
   </profiles>
+
 </project>

@@ -1,4 +1,19 @@
-target/
+# Eclipse
 .classpath
 .project
 .settings/
+
+# Intellij
+.idea/
+*.iml
+*.iws
+
+# Mac
+.DS_Store
+
+# Maven
+log/
+target/
+pom.xml.bak
+build.log
+interpolated-pom.xml

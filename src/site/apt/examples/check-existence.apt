@@ -1,0 +1,32 @@
+Check previous instance of artifact
+
+  When using Jenkins or another build system with a periodic build, successive builds may not produce
+different artifacts.  It's useful to not to promote these unchanged artifacts to the local or remote
+repository.
+
+  If you do not have the install plugin creating artifact checksums, then {{{../local-mojo.html}exists:local}}
+and {{{../remote-mojo.html}exists:remote}} will use the existence of a previous artifact to set the skip property.
+This usually does not make sense in the case of -SNAPSHOTS, so usually you will probably leave skipSnapshots to true
+
++---+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.honton.chas</groupId>
+        <artifactId>exists-maven-plugin</artifactId>
+        <version>0.0.2</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>local</goal>
+              <goal>remote</goal>
+            </goals>
+            <configuration>
+              <skipIfSnapshot>true</skipIfSnapshot>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
++---+

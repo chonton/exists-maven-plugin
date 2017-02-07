@@ -2,6 +2,8 @@
 
 Check if a maven artifact exists. Designed around the use case of skipping deployment if the stable version already exists.
 
+https://chonton.github.io/exists-maven-plugin/0.0.2/plugin-info.html
+
 You can use the following configuration:
 
 | Parameter | Default | Description |

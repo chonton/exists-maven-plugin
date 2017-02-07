@@ -15,6 +15,8 @@ import org.apache.maven.project.MavenProject;
 
 /**
  * check for presence of a remote artifact
+ * @since 0.0.1
+ * @deprecated Use remote goal
  */
 @Mojo(name = "exists", defaultPhase = LifecyclePhase.INITIALIZE)
 public class ArtifactExistsMojo extends AbstractMojo {

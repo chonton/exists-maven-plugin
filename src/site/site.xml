@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+  <body>
+    <menu name="Overview">
+      <item name="Introduction" href="index.html"/>
+      <item name="Goals" href="plugin-info.html"/>
+      <item name="FAQ" href="faq.html"/>
+    </menu>
+
+    <menu name="Examples">
+      <item name="Check existence" href="examples/check-existence.html"/>
+      <item name="Using checksums" href="examples/using-checksums.html"/>
+      <item name="Configuring repository" href="examples/distribution-management.html"/>
+    </menu>
+  </body>
+</project>
