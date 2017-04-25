@@ -2,17 +2,21 @@
 
 Check if a maven artifact exists. Designed around the use case of skipping deployment if the stable version already exists.
 
-https://chonton.github.io/exists-maven-plugin/0.0.2/plugin-info.html
+Mojo details at [plugin info](https://chonton.github.io/exists-maven-plugin/0.0.2/plugin-info.html)
 
-You can use the following configuration:
+Two basic goals: [local](https://chonton.github.io/exists-maven-plugin/0.0.2/local-mojo.html) checks
+if the just built artifact is already in the local repository;
+and [remote](https://chonton.github.io/exists-maven-plugin/0.0.2/remote-mojo.html) checks
+if the just built artifact is already in the remote repository.
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-|repository |${project.distributionManagement.repository.url}| The repository to query for artifacts|
 |project    |${project.groupId}:${project.artifactId}:${project.version}| The project within the repository to query|
 |artifact   |${project.artifactId}-${project.version}.pom|The artifact within the project to query|
 |property   |maven.deploy.skip|The property to receive the result of the query|
-|skipIfSnapshot|true|Skip the query if the project ends with -SNAPSHOT|
+|uuseChecksum|${createChecksum}|Use checksum to compare artifacts (Checksums only available when install plugin is so configured.)|
+|skipIfSnapshot|true|If checksums are not used, skip the query if the project ends with -SNAPSHOT|
+|repository |${project.distributionManagement.repository.url}| For remote goal, the repository to query for artifacts|
 
 Typical use:
 
@@ -23,11 +27,11 @@ Typical use:
       <plugin>
         <groupId>org.honton.chas</groupId>
         <artifactId>exists-maven-plugin</artifactId>
-        <version>0.0.1</version>
+        <version>0.0.2</version>
         <executions>
           <execution>
             <goals>
-              <goal>exists</goal>
+              <goal>remote</goal>
             </goals>
           </execution>
         </executions>
