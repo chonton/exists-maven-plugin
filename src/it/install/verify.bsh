@@ -1,0 +1,27 @@
+import java.io.BufferedReader;
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+
+  void findLine(BufferedReader reader, String expected) {
+    for(;;) {
+      String line = reader.readLine();
+      if(line == null) {
+        throw new IllegalStateException(expected + " not found");
+      }
+      if(line.matches(expected)) {
+        return;
+      }
+    }
+  }
+
+  File file = new File(basedir, "build.log" );
+  BufferedReader reader = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8);
+
+  findLine(reader, "\\[INFO\\] --- exists-maven-plugin:[0-9\\.]*:local \\(before-installation\\) @ exists-install-it ---");
+  findLine(reader, "\\[INFO\\] setting maven.install.skip=false");
+  findLine(reader, "\\[INFO\\] --- exists-maven-plugin:[0-9\\.]*:local \\(after-installation\\) @ exists-install-it ---");
+  findLine(reader, "\\[INFO\\] setting maven.install.skip=true");
+
+
+

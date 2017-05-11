@@ -67,16 +67,18 @@ public class RemoteExistsMojo extends AbstractExistsMojo {
     URLConnection urlConnection = new URL(uri).openConnection();
     HttpURLConnection httpURLConnection = (HttpURLConnection) urlConnection;
     httpURLConnection.setRequestMethod("HEAD");
+    getLog().debug("HEAD " + uri + " returned status " + httpURLConnection.getResponseCode());
     return httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK;
   }
 
-  @Override protected InputStream getRemoteArtifactStream(String uri) throws IOException {
+  @Override
+  protected InputStream getRemoteArtifactStream(String uri) throws IOException {
     HttpURLConnection con = (HttpURLConnection) new URL(uri).openConnection();
     con.setRequestMethod("GET");
     con.setRequestProperty("Accept", "text/plain");
     con.connect();
-    if(con.getResponseCode() != 200) {
-      getLog().debug("GET of " + uri + " returned status " + con.getResponseCode() );
+    if(con.getResponseCode() != HttpURLConnection.HTTP_OK) {
+      getLog().debug("GET " + uri + " returned status " + con.getResponseCode() );
       return null;
     }
     return con.getInputStream();
