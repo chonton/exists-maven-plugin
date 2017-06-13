@@ -35,8 +35,8 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
   private String artifact;
 
   /**
-   * Set whether checksum is used to compare artifacts,  The default is the <em>install</em>
-   * plugin's configuration to create checksums.
+   * Set whether checksum is used to compare artifacts.  The default is the <em>install</em>
+   * plugin's configuration to create checksums (property <em>createChecksum</em>).
    */
   @Parameter(defaultValue = "${createChecksum}")
   private boolean useChecksum;
@@ -49,7 +49,7 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
 
   private static final Pattern GAV_PARSER = Pattern.compile("^([^:]*):([^:]*):([^:]*)$");
 
-  protected abstract InputStream getRemoteArtifactStream(String uri) throws IOException;
+  protected abstract InputStream getRemoteArtifactStream(String uri) throws IOException, MojoExecutionException;
 
   protected abstract String getRepositoryBase() throws MojoExecutionException;
 
@@ -86,7 +86,7 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
     return project.endsWith("-SNAPSHOT");
   }
 
-  protected abstract Boolean checkArtifactExists(String uri) throws IOException;
+  protected abstract Boolean checkArtifactExists(String uri) throws IOException, MojoExecutionException;
 
   private Boolean verifyWithChecksum()
       throws IOException, MojoFailureException, NoSuchAlgorithmException, MojoExecutionException {

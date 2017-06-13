@@ -10,16 +10,20 @@
   </parent>
   <artifactId>exists-deploy-it</artifactId>
 
+  <properties>
+    <deploy.webserver.port>@deploy.webserver.port@</deploy.webserver.port>
+  </properties>
+
   <distributionManagement>
 
     <repository>
       <id>test</id>
-      <url>http://localhost:@deploy.webserver.port@/repo</url>
+      <url>http://localhost:${deploy.webserver.port}/repo</url>
     </repository>
 
     <snapshotRepository>
       <id>test</id>
-      <url>http://localhost:@deploy.webserver.port@/repo</url>
+      <url>http://localhost:${deploy.webserver.port}/repo</url>
     </snapshotRepository>
 
   </distributionManagement>
@@ -111,7 +115,7 @@
                 <argument>-classpath</argument>
                 <argument>${runtime.classpath}${path.separator}${project.build.outputDirectory}</argument>
                 <argument>org.honton.chas.exists.example.WebServer</argument>
-                <argument>@deploy.webserver.port@</argument>
+                <argument>${deploy.webserver.port}</argument>
               </arguments>
             </configuration>
           </execution>

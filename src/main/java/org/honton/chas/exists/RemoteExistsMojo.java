@@ -1,14 +1,25 @@
 package org.honton.chas.exists;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLConnection;
+import org.apache.commons.io.FileUtils;
+import org.apache.maven.artifact.manager.WagonManager;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.settings.Settings;
+import org.apache.maven.wagon.ConnectionException;
+import org.apache.maven.wagon.ResourceDoesNotExistException;
+import org.apache.maven.wagon.TransferFailedException;
+import org.apache.maven.wagon.Wagon;
+import org.apache.maven.wagon.WagonException;
+import org.apache.maven.wagon.authorization.AuthorizationException;
+import org.codehaus.mojo.wagon.shared.WagonUtils;
+
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Set a property if the artifact in the remote repository is same as the just built artifact.
@@ -42,6 +53,30 @@ public class RemoteExistsMojo extends AbstractExistsMojo {
   @Parameter(defaultValue = "${project.distributionManagement.snapshotRepository.url}")
   private String snapshotRepository;
 
+  /**
+   * The server ID to use when checking for distribution artifacts.
+   * Settings like proxy, authentication or mirrors will be applied when this value is set.
+   *
+   * @since 0.0.3
+   */
+  @Parameter(defaultValue = "${project.distributionManagement.repository.id}")
+  private String serverId;
+
+  /**
+   * The server ID to use when checking for snapshot versioned artifacts.
+   * Settings like proxy, authentication or mirrors will be applied when this value is set.
+   *
+   * @since 0.0.3
+   */
+  @Parameter(defaultValue = "${project.distributionManagement.snapshotRepository.id}")
+  private String snapshotServerId;
+
+  @Parameter(defaultValue = "${settings}", required = true, readonly = true)
+  private Settings settings;
+
+  @Component
+  private WagonManager wagonManager;
+
   @Override
   protected String getPropertyName() {
     return property;
@@ -63,24 +98,83 @@ public class RemoteExistsMojo extends AbstractExistsMojo {
   }
 
   @Override
-  protected Boolean checkArtifactExists(String uri) throws IOException {
-    URLConnection urlConnection = new URL(uri).openConnection();
-    HttpURLConnection httpURLConnection = (HttpURLConnection) urlConnection;
-    httpURLConnection.setRequestMethod("HEAD");
-    getLog().debug("HEAD " + uri + " returned status " + httpURLConnection.getResponseCode());
-    return httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK;
+  protected Boolean checkArtifactExists(String uri) throws IOException, MojoExecutionException {
+    String path = getPath(uri);
+    try (WagonHelper wagonHelper = new WagonHelper(getRepositoryBase())) {
+      return wagonHelper.resourceExists(path);
+    }
   }
 
   @Override
-  protected InputStream getRemoteArtifactStream(String uri) throws IOException {
-    HttpURLConnection con = (HttpURLConnection) new URL(uri).openConnection();
-    con.setRequestMethod("GET");
-    con.setRequestProperty("Accept", "text/plain");
-    con.connect();
-    if(con.getResponseCode() != HttpURLConnection.HTTP_OK) {
-      getLog().debug("GET " + uri + " returned status " + con.getResponseCode() );
-      return null;
+  protected InputStream getRemoteArtifactStream(String uri) throws IOException, MojoExecutionException {
+    // This method is only called to read the hash, so we can safely read all the content into memory!
+    byte[] content;
+    String path = getPath(uri);
+    File temp = File.createTempFile("temp", ".sha1");
+    try (WagonHelper wagonHelper = new WagonHelper(getRepositoryBase())) {
+      wagonHelper.get(path, temp);
+      content = FileUtils.readFileToByteArray(temp);
+    } finally {
+      if (!temp.delete()) {
+        getLog().warn("Could not delete temporary file: " + temp);
+        temp.deleteOnExit();
+      }
     }
-    return con.getInputStream();
+    return new ByteArrayInputStream(content);
+  }
+
+  private String getPath(String uri) throws MojoExecutionException {
+    String repositoryBase = getRepositoryBase();
+    if (!uri.startsWith(repositoryBase + "/")) {
+      throw new IllegalArgumentException("Invalid URL: " + uri);
+    }
+    return uri.substring(repositoryBase.length() + 1);
+  }
+
+  private class WagonHelper implements AutoCloseable {
+    private final String uri;
+    private final Wagon wagon;
+
+    public WagonHelper(String uri) throws MojoExecutionException {
+      this.uri = uri;
+      try {
+        String id = (isSnapshot() ? snapshotServerId : serverId);
+        id = (id == null ? "" : id);
+        wagon = WagonUtils.createWagon(id, uri, wagonManager, settings, getLog());
+      } catch (WagonException e) {
+        throw new MojoExecutionException("Could not create Wagon for URL: " + uri, e);
+      }
+    }
+
+    public boolean resourceExists(String resourceName) throws MojoExecutionException {
+      try {
+        return wagon.resourceExists(resourceName);
+      } catch (AuthorizationException e) {
+        throw new MojoExecutionException("Authorization failed for URL: " + uri, e);
+      } catch (TransferFailedException e) {
+        throw new MojoExecutionException("Transfer failed for URL: " + uri, e);
+      }
+    }
+
+    public void get(String resourceName, File destination) throws MojoExecutionException {
+      try {
+        wagon.get(resourceName, destination);
+      } catch (AuthorizationException e) {
+        throw new MojoExecutionException("Authorization failed for URL: " + uri, e);
+      } catch (TransferFailedException e) {
+        throw new MojoExecutionException("Transfer failed for URL: " + uri, e);
+      } catch (ResourceDoesNotExistException e) {
+        throw new MojoExecutionException("Resource does not exist: " + uri, e);
+      }
+    }
+
+    @Override
+    public void close() {
+      try {
+        wagon.disconnect();
+      } catch (ConnectionException e) {
+        getLog().debug("Error disconnecting wagon - ignored", e);
+      }
+    }
   }
 }

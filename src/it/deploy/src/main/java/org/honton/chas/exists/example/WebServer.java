@@ -2,12 +2,18 @@ package org.honton.chas.exists.example;
 
 import fi.iki.elonen.NanoHTTPD;
 import fi.iki.elonen.NanoHTTPD.Response.Status;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class WebServer extends NanoHTTPD {
+  private static final Logger LOG = Logger.getLogger(WebServer.class.getName());
 
   private static final Map<String, String> TYPES = new HashMap<>();
   static {
@@ -17,11 +23,11 @@ public class WebServer extends NanoHTTPD {
   }
 
   private Map<String, byte[]> storage = new HashMap<>();
-  private final long start = System.currentTimeMillis();
 
   public WebServer(int port) throws IOException {
     super(port);
-    start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
+    LOG.info("Server running on port " + port);
+    start(NanoHTTPD.SOCKET_READ_TIMEOUT * 10, false);
   }
 
   public static void main(String[] args) throws IOException {
@@ -47,8 +53,14 @@ public class WebServer extends NanoHTTPD {
   public Response serve(IHTTPSession session) {
     String uri = session.getUri();
     String type = getType(uri);
+    LOG.info(session.getMethod() + " " + uri + " " + type);
     switch (session.getMethod()) {
-      case HEAD:
+      case HEAD: {
+        if (!storage.containsKey(uri)) {
+          return NanoHTTPD.newFixedLengthResponse(Status.NOT_FOUND, type, null);
+        }
+        return NanoHTTPD.newFixedLengthResponse(Status.OK, type, null);
+      }
       case GET: {
         byte[] file = storage.get(uri);
         if (file == null) {
@@ -71,8 +83,13 @@ public class WebServer extends NanoHTTPD {
   }
 
   private String getType(String uri) {
-    String suffix = uri.substring(uri.lastIndexOf('.')+1);
-    String type = TYPES.get(suffix);
-    return type!=null ?type :"text/"+suffix;
+    int dot = uri.lastIndexOf('.');
+    if (dot == -1) {
+      return "text/plain";
+    } else {
+      String suffix = uri.substring(dot + 1);
+      String type = TYPES.get(suffix);
+      return type != null ? type : "text/" + suffix;
+    }
   }
 }
