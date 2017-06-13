@@ -26,8 +26,8 @@ public class WebServer extends NanoHTTPD {
 
   public WebServer(int port) throws IOException {
     super(port);
-    LOG.info("Server running on port " + port);
-    start(NanoHTTPD.SOCKET_READ_TIMEOUT * 10, false);
+    LOG.fine("Server running on port " + port);
+    start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
   }
 
   public static void main(String[] args) throws IOException {
@@ -51,9 +51,24 @@ public class WebServer extends NanoHTTPD {
 
   @Override
   public Response serve(IHTTPSession session) {
+    LOG.fine(session.getMethod() + " " + session.getUri());
+    Response response = generateResponse(session);
+    LOG.fine("Response: " + response.getStatus());
+    return response;
+  }
+
+  private Response generateResponse(IHTTPSession session) {
     String uri = session.getUri();
+    if (uri.startsWith("/auth")) {
+      String authorization = session.getHeaders().get("authorization");
+      if (authorization == null || !authorization.equals("Basic dXNlcjE6cGFzc3dvcmQxMjM=")) {
+        Response response = NanoHTTPD.newFixedLengthResponse(Status.UNAUTHORIZED, "", null);
+        response.addHeader("WWW-Authenticate", "Basic realm=\"Authentication needed\"");
+        return response;
+      }
+      uri = uri.substring("/auth".length());
+    }
     String type = getType(uri);
-    LOG.info(session.getMethod() + " " + uri + " " + type);
     switch (session.getMethod()) {
       case HEAD: {
         if (!storage.containsKey(uri)) {

@@ -90,11 +90,33 @@
             <phase>integration-test</phase>
           </execution>
           <execution>
+            <id>after-installation-with-auth</id>
+            <goals>
+              <goal>remote</goal>
+            </goals>
+            <phase>integration-test</phase>
+            <configuration>
+              <repository>http://localhost:${deploy.webserver.port}/auth/repo</repository>
+              <serverId>with-auth</serverId>
+            </configuration>
+          </execution>
+          <execution>
             <id>before-installation</id>
             <goals>
               <goal>remote</goal>
             </goals>
             <phase>test</phase>
+          </execution>
+          <execution>
+            <id>before-installation-with-auth</id>
+            <goals>
+              <goal>remote</goal>
+            </goals>
+            <phase>test</phase>
+            <configuration>
+              <repository>http://localhost:${deploy.webserver.port}/auth/repo</repository>
+              <serverId>with-auth</serverId>
+            </configuration>
           </execution>
         </executions>
       </plugin>
