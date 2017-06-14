@@ -14,9 +14,15 @@ if the just built artifact is already in the remote repository.
 |project    |${project.groupId}:${project.artifactId}:${project.version}| The project within the repository to query|
 |artifact   |${project.artifactId}-${project.version}.pom|The artifact within the project to query|
 |property   |maven.deploy.skip|The property to receive the result of the query|
-|uuseChecksum|${createChecksum}|Use checksum to compare artifacts (Checksums only available when install plugin is so configured.)|
+|userProperty|false|If the property should be set as a user property, to be available in child projects|
+|useChecksum|${createChecksum}|Use checksum to compare artifacts (Checksums only available when install plugin is so configured.)|
 |skipIfSnapshot|true|If checksums are not used, skip the query if the project ends with -SNAPSHOT|
 |repository |${project.distributionManagement.repository.url}| For remote goal, the repository to query for artifacts|
+|snapshotRepository |${project.distributionManagement.snapshotRepository.url}| For remote goal, the repository to query for snapshot artifacts|
+|serverId|${project.distributionManagement.repository.id}|For remote goal, the server ID to use for authentication and proxy settings|
+|snapshotServerId|${project.distributionManagement.snapshotRepository.id}|For remote goal, the server ID to use for snapshot authentication and proxy settings|
+|failIfExists|${failIfExists}|Fail the build if the artifact already exists|
+|failIfNotExists|${failIfNotExists}|Fail the build if the artifact does not exist|
 
 Typical use:
 

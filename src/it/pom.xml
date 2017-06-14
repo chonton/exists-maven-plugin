@@ -9,6 +9,7 @@
 
   <modules>
     <module>deploy</module>
+    <module>fail</module>
     <module>install</module>
   </modules>
 

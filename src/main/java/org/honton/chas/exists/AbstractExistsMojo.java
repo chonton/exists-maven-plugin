@@ -1,11 +1,5 @@
 package org.honton.chas.exists;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.security.NoSuchAlgorithmException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
@@ -14,6 +8,13 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.IOUtil;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.NoSuchAlgorithmException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Set a property if the artifact in a local or remote repository is same as the just built artifact.
@@ -57,6 +58,22 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
   @Parameter(defaultValue = "false")
   private boolean userProperty;
 
+  /**
+   * Fail the build if the artifact already exists in the repository.
+   *
+   * @since 0.0.3
+   */
+  @Parameter(defaultValue = "${failIfExists}")
+  private boolean failIfExists;
+
+  /**
+   * Fail the build if the artifact does not exist in the repository.
+   *
+   * @since 0.0.3
+   */
+  @Parameter(defaultValue = "${failIfNotExists}")
+  private boolean failIfNotExists;
+
   @Parameter(defaultValue = "${session}", required = true, readonly = true)
   private MavenSession session;
 
@@ -70,8 +87,13 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
 
   public void execute() throws MojoExecutionException, MojoFailureException {
     try {
-      Boolean matches = useChecksum ?verifyWithChecksum() :verifyWithExistence();
-      if(matches != null) {
+      Boolean matches = useChecksum ? verifyWithChecksum() : verifyWithExistence();
+      if (matches != null) {
+        if (failIfExists && matches) {
+          throw new MojoFailureException("Artifact already exists in repository: " + project + "/" + artifact);
+        } else if (failIfNotExists && !matches) {
+          throw new MojoFailureException("Artifact does not exist in repository: " + project + "/" + artifact);
+        }
         String propertyName = getPropertyName();
         String value = Boolean.toString(matches);
         if (userProperty) {
@@ -82,8 +104,6 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
           mavenProject.getProperties().setProperty(propertyName, value);
         }
       }
-    } catch (MojoFailureException e) {
-      throw e;
     } catch (Exception e) {
       throw new MojoExecutionException(e.getMessage(), e);
     }
