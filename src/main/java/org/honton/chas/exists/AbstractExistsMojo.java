@@ -7,6 +7,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -47,6 +48,18 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
   @Parameter(defaultValue = "true")
   private boolean skipIfSnapshot;
 
+  /**
+   * Set the property as a user property instead of a project property.  This will make the property
+   * available in the modules of a parent POM.
+   *
+   * @since 0.0.3
+   */
+  @Parameter(defaultValue = "false")
+  private boolean userProperty;
+
+  @Parameter(defaultValue = "${session}", required = true, readonly = true)
+  private MavenSession session;
+
   private static final Pattern GAV_PARSER = Pattern.compile("^([^:]*):([^:]*):([^:]*)$");
 
   protected abstract InputStream getRemoteArtifactStream(String uri) throws IOException, MojoExecutionException;
@@ -61,8 +74,13 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
       if(matches != null) {
         String propertyName = getPropertyName();
         String value = Boolean.toString(matches);
-        getLog().info("setting " + propertyName + "=" + value);
-        mavenProject.getProperties().setProperty(propertyName, value);
+        if (userProperty) {
+          getLog().info("setting user property " + propertyName + "=" + value);
+          session.getUserProperties().setProperty(propertyName, value);
+        } else {
+          getLog().info("setting " + propertyName + "=" + value);
+          mavenProject.getProperties().setProperty(propertyName, value);
+        }
       }
     } catch (MojoFailureException e) {
       throw e;
