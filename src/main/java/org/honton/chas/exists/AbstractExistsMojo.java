@@ -1,5 +1,11 @@
 package org.honton.chas.exists;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
@@ -7,14 +13,6 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.util.IOUtil;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.security.NoSuchAlgorithmException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Set a property if the artifact in a local or remote repository is same as the just built artifact.
@@ -79,7 +77,7 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
 
   private static final Pattern GAV_PARSER = Pattern.compile("^([^:]*):([^:]*):([^:]*)$");
 
-  protected abstract InputStream getRemoteArtifactStream(String uri) throws IOException, MojoExecutionException;
+  protected abstract byte[] getRemoteChecksum(String s) throws MojoExecutionException, IOException;
 
   protected abstract String getRepositoryBase() throws MojoExecutionException;
 
@@ -131,22 +129,18 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
     String uri = getRepositoryUri();
     getLog().debug("checking for resource " + uri);
 
-    InputStream inputStream = getRemoteArtifactStream(uri  + ".sha1" );
-    if(inputStream == null) {
+    byte[] priorChecksumBytes = getRemoteChecksum(uri  + ".sha1" );
+    if(priorChecksumBytes == null) {
       return null;
     }
-    try {
-      String priorChecksum = IOUtil.toString(inputStream, "ISO_8859_1", 1000);
-      String buildChecksum = getArtifactChecksum();
-      if(priorChecksum.equalsIgnoreCase(buildChecksum)) {
-        return true;
-      }
-      getLog().debug("buildChecksum(" + buildChecksum + ") != priorChecksum(" + priorChecksum + ")");
-      return false;
+
+    String priorChecksum = new String(priorChecksumBytes, StandardCharsets.ISO_8859_1);
+    String buildChecksum = getArtifactChecksum();
+    if(priorChecksum.equalsIgnoreCase(buildChecksum)) {
+      return true;
     }
-    finally {
-      IOUtil.close(inputStream);
-    }
+    getLog().debug("buildChecksum(" + buildChecksum + ") != priorChecksum(" + priorChecksum + ")");
+    return false;
   }
 
   private String getRepositoryUri() throws MojoExecutionException {
@@ -175,7 +169,7 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
     else {
       file = new File(mavenProject.getBuild().getDirectory(), artifact);
     }
-    if (file != null && file.isFile()) {
+    if (file.isFile()) {
       getLog().debug("Calculating checksum for " + file);
       return signer.getChecksum(file);
     } else {

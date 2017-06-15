@@ -1,6 +1,8 @@
 package org.honton.chas.exists;
 
-import org.apache.commons.io.FileUtils;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import org.apache.maven.artifact.manager.WagonManager;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Component;
@@ -10,16 +12,12 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.settings.Settings;
 import org.apache.maven.wagon.ConnectionException;
 import org.apache.maven.wagon.ResourceDoesNotExistException;
+import org.apache.maven.wagon.StreamingWagon;
 import org.apache.maven.wagon.TransferFailedException;
 import org.apache.maven.wagon.Wagon;
 import org.apache.maven.wagon.WagonException;
 import org.apache.maven.wagon.authorization.AuthorizationException;
 import org.codehaus.mojo.wagon.shared.WagonUtils;
-
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 
 /**
  * Set a property if the artifact in the remote repository is same as the just built artifact.
@@ -106,21 +104,13 @@ public class RemoteExistsMojo extends AbstractExistsMojo {
   }
 
   @Override
-  protected InputStream getRemoteArtifactStream(String uri) throws IOException, MojoExecutionException {
+  protected byte[] getRemoteChecksum(String uri) throws MojoExecutionException {
     // This method is only called to read the hash, so we can safely read all the content into memory!
-    byte[] content;
-    String path = getPath(uri);
-    File temp = File.createTempFile("temp", ".sha1");
     try (WagonHelper wagonHelper = new WagonHelper(getRepositoryBase())) {
-      wagonHelper.get(path, temp);
-      content = FileUtils.readFileToByteArray(temp);
-    } finally {
-      if (!temp.delete()) {
-        getLog().warn("Could not delete temporary file: " + temp);
-        temp.deleteOnExit();
-      }
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      wagonHelper.get(getPath(uri), baos);
+      return baos.toByteArray();
     }
-    return new ByteArrayInputStream(content);
   }
 
   private String getPath(String uri) throws MojoExecutionException {
@@ -138,33 +128,26 @@ public class RemoteExistsMojo extends AbstractExistsMojo {
     public WagonHelper(String uri) throws MojoExecutionException {
       this.uri = uri;
       try {
-        String id = (isSnapshot() ? snapshotServerId : serverId);
-        id = (id == null ? "" : id);
-        wagon = WagonUtils.createWagon(id, uri, wagonManager, settings, getLog());
+        String id = isSnapshot() ? snapshotServerId : serverId;
+        wagon = WagonUtils.createWagon(id == null ? "" : id, uri, wagonManager, settings, getLog());
       } catch (WagonException e) {
-        throw new MojoExecutionException("Could not create Wagon for URL: " + uri, e);
+        throw new MojoExecutionException("Could not create Wagon for " + uri, e);
       }
     }
 
     public boolean resourceExists(String resourceName) throws MojoExecutionException {
       try {
         return wagon.resourceExists(resourceName);
-      } catch (AuthorizationException e) {
-        throw new MojoExecutionException("Authorization failed for URL: " + uri, e);
-      } catch (TransferFailedException e) {
-        throw new MojoExecutionException("Transfer failed for URL: " + uri, e);
+      } catch (WagonException e) {
+        throw new MojoExecutionException("Checking remote resource failed for " + uri, e);
       }
     }
 
-    public void get(String resourceName, File destination) throws MojoExecutionException {
+    public void get(String resourceName, OutputStream outputStream) throws MojoExecutionException {
       try {
-        wagon.get(resourceName, destination);
-      } catch (AuthorizationException e) {
-        throw new MojoExecutionException("Authorization failed for URL: " + uri, e);
-      } catch (TransferFailedException e) {
-        throw new MojoExecutionException("Transfer failed for URL: " + uri, e);
-      } catch (ResourceDoesNotExistException e) {
-        throw new MojoExecutionException("Resource does not exist: " + uri, e);
+        ((StreamingWagon)wagon).getToStream(resourceName, outputStream);
+      } catch (WagonException e) {
+        throw new MojoExecutionException("Fetching remote checksum failed for " + uri, e);
       }
     }
 

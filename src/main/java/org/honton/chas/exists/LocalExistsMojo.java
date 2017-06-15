@@ -1,10 +1,10 @@
 package org.honton.chas.exists;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
+import java.nio.file.Files;
 import org.apache.maven.artifact.repository.ArtifactRepository;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -46,8 +46,11 @@ public class LocalExistsMojo extends AbstractExistsMojo {
   }
 
   @Override
-  protected InputStream getRemoteArtifactStream(String uri) throws IOException {
+  protected byte[] getRemoteChecksum(String uri) throws MojoExecutionException, IOException {
     File file = new File(uri);
-    return file.isFile() ?new FileInputStream(file) :null;
+    if (!file.isFile()) {
+      return null;
+    }
+    return Files.readAllBytes(file.toPath());
   }
 }
