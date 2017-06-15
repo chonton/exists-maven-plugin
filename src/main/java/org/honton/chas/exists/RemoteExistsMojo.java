@@ -9,15 +9,15 @@ import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.settings.Proxy;
 import org.apache.maven.settings.Settings;
 import org.apache.maven.wagon.ConnectionException;
-import org.apache.maven.wagon.ResourceDoesNotExistException;
 import org.apache.maven.wagon.StreamingWagon;
-import org.apache.maven.wagon.TransferFailedException;
 import org.apache.maven.wagon.Wagon;
 import org.apache.maven.wagon.WagonException;
-import org.apache.maven.wagon.authorization.AuthorizationException;
-import org.codehaus.mojo.wagon.shared.WagonUtils;
+import org.apache.maven.wagon.observers.Debug;
+import org.apache.maven.wagon.proxy.ProxyInfo;
+import org.apache.maven.wagon.repository.Repository;
 
 /**
  * Set a property if the artifact in the remote repository is same as the just built artifact.
@@ -125,17 +125,52 @@ public class RemoteExistsMojo extends AbstractExistsMojo {
     private final String uri;
     private final Wagon wagon;
 
-    public WagonHelper(String uri) throws MojoExecutionException {
+    WagonHelper(String uri) throws MojoExecutionException {
       this.uri = uri;
       try {
         String id = isSnapshot() ? snapshotServerId : serverId;
-        wagon = WagonUtils.createWagon(id == null ? "" : id, uri, wagonManager, settings, getLog());
+        wagon = createWagon(id == null ? "" : id, uri);
       } catch (WagonException e) {
         throw new MojoExecutionException("Could not create Wagon for " + uri, e);
       }
     }
 
-    public boolean resourceExists(String resourceName) throws MojoExecutionException {
+    Wagon createWagon(String serverId, String url) throws WagonException {
+      Repository repository = new Repository(serverId, url);
+      Wagon wagon = wagonManager.getWagon(repository);
+
+      if (getLog().isDebugEnabled()) {
+        Debug debug = new Debug();
+        wagon.addSessionListener(debug);
+        wagon.addTransferListener(debug);
+      }
+
+      ProxyInfo proxyInfo = getProxyInfo();
+      if (proxyInfo != null) {
+        wagon
+            .connect(repository, wagonManager.getAuthenticationInfo(repository.getId()), proxyInfo);
+      } else {
+        wagon.connect(repository, wagonManager.getAuthenticationInfo(repository.getId()));
+      }
+      return wagon;
+    }
+
+    ProxyInfo getProxyInfo() {
+      if (settings.getActiveProxy() == null) {
+        return null;
+      }
+      ProxyInfo proxyInfo = new ProxyInfo();
+      Proxy proxy = settings.getActiveProxy();
+      proxyInfo.setHost(proxy.getHost());
+      proxyInfo.setType(proxy.getProtocol());
+      proxyInfo.setPort(proxy.getPort());
+      proxyInfo.setNonProxyHosts(proxy.getNonProxyHosts());
+      proxyInfo.setUserName(proxy.getUsername());
+      proxyInfo.setPassword(proxy.getPassword());
+      return proxyInfo;
+    }
+
+    boolean resourceExists(String resourceName) throws MojoExecutionException {
       try {
         return wagon.resourceExists(resourceName);
       } catch (WagonException e) {
@@ -143,9 +178,9 @@ public class RemoteExistsMojo extends AbstractExistsMojo {
       }
     }
 
-    public void get(String resourceName, OutputStream outputStream) throws MojoExecutionException {
+    void get(String resourceName, OutputStream outputStream) throws MojoExecutionException {
       try {
-        ((StreamingWagon)wagon).getToStream(resourceName, outputStream);
+        ((StreamingWagon) wagon).getToStream(resourceName, outputStream);
       } catch (WagonException e) {
         throw new MojoExecutionException("Fetching remote checksum failed for " + uri, e);
       }
