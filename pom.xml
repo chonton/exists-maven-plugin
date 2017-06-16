@@ -4,7 +4,7 @@
 
   <groupId>org.honton.chas</groupId>
   <artifactId>exists-maven-plugin</artifactId>
-  <version>0.0.3-SNAPSHOT</version>
+  <version>0.0.3</version>
   <packaging>maven-plugin</packaging>
 
   <name>Artifact Exists Maven Plugin</name>
