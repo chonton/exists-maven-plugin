@@ -10,16 +10,20 @@
   </parent>
   <artifactId>exists-deploy-it</artifactId>
 
+  <properties>
+    <deploy.webserver.port>@deploy.webserver.port@</deploy.webserver.port>
+  </properties>
+
   <distributionManagement>
 
     <repository>
       <id>test</id>
-      <url>http://localhost:@deploy.webserver.port@/repo</url>
+      <url>http://localhost:${deploy.webserver.port}/repo</url>
     </repository>
 
     <snapshotRepository>
       <id>test</id>
-      <url>http://localhost:@deploy.webserver.port@/repo</url>
+      <url>http://localhost:${deploy.webserver.port}/repo</url>
     </snapshotRepository>
 
   </distributionManagement>
@@ -86,11 +90,33 @@
             <phase>integration-test</phase>
           </execution>
           <execution>
+            <id>after-installation-with-auth</id>
+            <goals>
+              <goal>remote</goal>
+            </goals>
+            <phase>integration-test</phase>
+            <configuration>
+              <repository>http://localhost:${deploy.webserver.port}/auth/repo</repository>
+              <serverId>with-auth</serverId>
+            </configuration>
+          </execution>
+          <execution>
             <id>before-installation</id>
             <goals>
               <goal>remote</goal>
             </goals>
             <phase>test</phase>
+          </execution>
+          <execution>
+            <id>before-installation-with-auth</id>
+            <goals>
+              <goal>remote</goal>
+            </goals>
+            <phase>test</phase>
+            <configuration>
+              <repository>http://localhost:${deploy.webserver.port}/auth/repo</repository>
+              <serverId>with-auth</serverId>
+            </configuration>
           </execution>
         </executions>
       </plugin>
@@ -111,7 +137,7 @@
                 <argument>-classpath</argument>
                 <argument>${runtime.classpath}${path.separator}${project.build.outputDirectory}</argument>
                 <argument>org.honton.chas.exists.example.WebServer</argument>
-                <argument>@deploy.webserver.port@</argument>
+                <argument>${deploy.webserver.port}</argument>
               </arguments>
             </configuration>
           </execution>

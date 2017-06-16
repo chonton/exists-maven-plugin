@@ -4,7 +4,7 @@
 
   <groupId>org.honton.chas</groupId>
   <artifactId>exists-maven-plugin</artifactId>
-  <version>0.0.2</version>
+  <version>0.0.3-SNAPSHOT</version>
   <packaging>maven-plugin</packaging>
 
   <name>Artifact Exists Maven Plugin</name>
@@ -26,6 +26,10 @@
       <name>chas honton</name>
       <email>chas@honton.org</email>
       <url>https://www.linkedin.com/in/chonton</url>
+    </developer>
+    <developer>
+      <name>Pascal</name>
+      <url>https://github.com/pascalgn</url>
     </developer>
   </developers>
 
@@ -66,11 +70,22 @@
   </properties>
 
   <dependencies>
-
     <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-artifact</artifactId>
       <version>3.0</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-artifact-manager</artifactId>
+      <version>2.2.1</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-core</artifactId>
+      <version>3.3.9</version>
     </dependency>
 
     <dependency>
@@ -87,8 +102,8 @@
 
     <dependency>
       <groupId>org.apache.maven</groupId>
-      <artifactId>maven-project</artifactId>
-      <version>2.2.1</version>
+      <artifactId>maven-settings</artifactId>
+      <version>3.3.9</version>
     </dependency>
 
     <dependency>
@@ -99,9 +114,15 @@
     </dependency>
 
     <dependency>
+      <groupId>org.apache.maven.wagon</groupId>
+      <artifactId>wagon-provider-api</artifactId>
+      <version>2.10</version>
+    </dependency>
+
+    <dependency>
       <groupId>org.codehaus.plexus</groupId>
       <artifactId>plexus-utils</artifactId>
-      <version>1.5.15</version>
+      <version>3.0.24</version>
     </dependency>
   </dependencies>
 
@@ -121,28 +142,10 @@
       </plugin>
 
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>build-helper-maven-plugin</artifactId>
-        <version>3.0.0</version>
-        <executions>
-          <execution>
-            <id>reserve-network-port</id>
-            <goals>
-              <goal>reserve-network-port</goal>
-            </goals>
-            <configuration>
-              <portNames>
-                <portName>deploy.webserver.port</portName>
-              </portNames>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
         <artifactId>maven-invoker-plugin</artifactId>
         <version>2.0.0</version>
         <configuration>
+          <preBuildHookScript>clean</preBuildHookScript>
           <postBuildHookScript>verify</postBuildHookScript>
           <addTestClassPath>true</addTestClassPath>
           <settingsFile>src/it/settings.xml</settingsFile>
@@ -183,6 +186,25 @@
           <execution>
             <id>default-descriptor</id>
             <phase>process-classes</phase>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>3.0.0</version>
+        <executions>
+          <execution>
+            <id>reserve-network-port</id>
+            <goals>
+              <goal>reserve-network-port</goal>
+            </goals>
+            <configuration>
+              <portNames>
+                <portName>deploy.webserver.port</portName>
+              </portNames>
+            </configuration>
           </execution>
         </executions>
       </plugin>

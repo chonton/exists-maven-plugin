@@ -2,17 +2,17 @@ package org.honton.chas.exists;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.util.IOUtil;
 
 /**
  * Set a property if the artifact in a local or remote repository is same as the just built artifact.
@@ -35,8 +35,8 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
   private String artifact;
 
   /**
-   * Set whether checksum is used to compare artifacts,  The default is the <em>install</em>
-   * plugin's configuration to create checksums.
+   * Set whether checksum is used to compare artifacts.  The default is the <em>install</em>
+   * plugin's configuration to create checksums (property <em>createChecksum</em>).
    */
   @Parameter(defaultValue = "${createChecksum}")
   private boolean useChecksum;
@@ -47,9 +47,37 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
   @Parameter(defaultValue = "true")
   private boolean skipIfSnapshot;
 
+  /**
+   * Set the property as a user property instead of a project property.  This will make the property
+   * available in the modules of a parent POM.
+   *
+   * @since 0.0.3
+   */
+  @Parameter(defaultValue = "false")
+  private boolean userProperty;
+
+  /**
+   * Fail the build if the artifact already exists in the repository.
+   *
+   * @since 0.0.3
+   */
+  @Parameter(defaultValue = "${failIfExists}")
+  private boolean failIfExists;
+
+  /**
+   * Fail the build if the artifact does not exist in the repository.
+   *
+   * @since 0.0.3
+   */
+  @Parameter(defaultValue = "${failIfNotExists}")
+  private boolean failIfNotExists;
+
+  @Parameter(defaultValue = "${session}", required = true, readonly = true)
+  private MavenSession session;
+
   private static final Pattern GAV_PARSER = Pattern.compile("^([^:]*):([^:]*):([^:]*)$");
 
-  protected abstract InputStream getRemoteArtifactStream(String uri) throws IOException;
+  protected abstract byte[] getRemoteChecksum(String s) throws MojoExecutionException, IOException;
 
   protected abstract String getRepositoryBase() throws MojoExecutionException;
 
@@ -57,15 +85,23 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
 
   public void execute() throws MojoExecutionException, MojoFailureException {
     try {
-      Boolean matches = useChecksum ?verifyWithChecksum() :verifyWithExistence();
-      if(matches != null) {
+      Boolean matches = useChecksum ? verifyWithChecksum() : verifyWithExistence();
+      if (matches != null) {
+        if (failIfExists && matches) {
+          throw new MojoFailureException("Artifact already exists in repository: " + project + "/" + artifact);
+        } else if (failIfNotExists && !matches) {
+          throw new MojoFailureException("Artifact does not exist in repository: " + project + "/" + artifact);
+        }
         String propertyName = getPropertyName();
         String value = Boolean.toString(matches);
-        getLog().info("setting " + propertyName + "=" + value);
-        mavenProject.getProperties().setProperty(propertyName, value);
+        if (userProperty) {
+          getLog().info("setting user property " + propertyName + "=" + value);
+          session.getUserProperties().setProperty(propertyName, value);
+        } else {
+          getLog().info("setting " + propertyName + "=" + value);
+          mavenProject.getProperties().setProperty(propertyName, value);
+        }
       }
-    } catch (MojoFailureException e) {
-      throw e;
     } catch (Exception e) {
       throw new MojoExecutionException(e.getMessage(), e);
     }
@@ -86,29 +122,25 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
     return project.endsWith("-SNAPSHOT");
   }
 
-  protected abstract Boolean checkArtifactExists(String uri) throws IOException;
+  protected abstract Boolean checkArtifactExists(String uri) throws IOException, MojoExecutionException;
 
   private Boolean verifyWithChecksum()
       throws IOException, MojoFailureException, NoSuchAlgorithmException, MojoExecutionException {
     String uri = getRepositoryUri();
     getLog().debug("checking for resource " + uri);
 
-    InputStream inputStream = getRemoteArtifactStream(uri  + ".sha1" );
-    if(inputStream == null) {
+    byte[] priorChecksumBytes = getRemoteChecksum(uri  + ".sha1" );
+    if(priorChecksumBytes == null) {
       return null;
     }
-    try {
-      String priorChecksum = IOUtil.toString(inputStream, "ISO_8859_1", 1000);
-      String buildChecksum = getArtifactChecksum();
-      if(priorChecksum.equalsIgnoreCase(buildChecksum)) {
-        return true;
-      }
-      getLog().debug("buildChecksum(" + buildChecksum + ") != priorChecksum(" + priorChecksum + ")");
-      return false;
+
+    String priorChecksum = new String(priorChecksumBytes, StandardCharsets.ISO_8859_1);
+    String buildChecksum = getArtifactChecksum();
+    if(priorChecksum.equalsIgnoreCase(buildChecksum)) {
+      return true;
     }
-    finally {
-      IOUtil.close(inputStream);
-    }
+    getLog().debug("buildChecksum(" + buildChecksum + ") != priorChecksum(" + priorChecksum + ")");
+    return false;
   }
 
   private String getRepositoryUri() throws MojoExecutionException {
@@ -137,7 +169,7 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
     else {
       file = new File(mavenProject.getBuild().getDirectory(), artifact);
     }
-    if (file != null && file.isFile()) {
+    if (file.isFile()) {
       getLog().debug("Calculating checksum for " + file);
       return signer.getChecksum(file);
     } else {

@@ -1,5 +1,12 @@
 <?xml version="1.0"?>
 <settings>
+  <servers>
+    <server>
+      <id>with-auth</id>
+      <username>user1</username>
+      <password>password123</password>
+    </server>
+  </servers>
   <profiles>
     <profile>
       <id>it-repo</id>
