@@ -23,6 +23,7 @@ if the just built artifact is already in the remote repository.
 |snapshotServerId|${project.distributionManagement.snapshotRepository.id}|For remote goal, the server ID to use for snapshot authentication and proxy settings|
 |failIfExists|${failIfExists}|Fail the build if the artifact already exists|
 |failIfNotExists|${failIfNotExists}|Fail the build if the artifact does not exist|
+|skip|${exists.skip}|Skip executing the plugin|
 
 Typical use:
 

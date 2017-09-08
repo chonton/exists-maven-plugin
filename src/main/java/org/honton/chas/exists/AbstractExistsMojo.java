@@ -1,11 +1,5 @@
 package org.honton.chas.exists;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.security.NoSuchAlgorithmException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
@@ -13,6 +7,13 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Set a property if the artifact in a local or remote repository is same as the just built artifact.
@@ -72,6 +73,14 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
   @Parameter(defaultValue = "${failIfNotExists}")
   private boolean failIfNotExists;
 
+  /**
+   * Skip executing this plugin
+   *
+   * @since 0.0.4
+   */
+  @Parameter(defaultValue = "false", property = "exists.skip")
+  private boolean skip;
+
   @Parameter(defaultValue = "${session}", required = true, readonly = true)
   private MavenSession session;
 
@@ -84,6 +93,10 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
   protected abstract String getPropertyName();
 
   public void execute() throws MojoExecutionException, MojoFailureException {
+    if(skip) {
+      getLog().info("skipping exists execution");
+      return;
+    }
     try {
       Boolean matches = useChecksum ? verifyWithChecksum() : verifyWithExistence();
       if (matches != null) {
