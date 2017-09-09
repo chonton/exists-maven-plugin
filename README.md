@@ -34,7 +34,7 @@ Typical use:
       <plugin>
         <groupId>org.honton.chas</groupId>
         <artifactId>exists-maven-plugin</artifactId>
-        <version>0.0.3</version>
+        <version>0.0.4</version>
         <executions>
           <execution>
             <goals>
