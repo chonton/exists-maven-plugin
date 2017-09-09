@@ -2,11 +2,11 @@
 
 Check if a maven artifact exists. Designed around the use case of skipping deployment if the stable version already exists.
 
-Mojo details at [plugin info](https://chonton.github.io/exists-maven-plugin/0.0.3/plugin-info.html)
+Mojo details at [plugin info](https://chonton.github.io/exists-maven-plugin/0.0.4/plugin-info.html)
 
-Two basic goals: [local](https://chonton.github.io/exists-maven-plugin/0.0.3/local-mojo.html) checks
+Two basic goals: [local](https://chonton.github.io/exists-maven-plugin/0.0.4/local-mojo.html) checks
 if the just built artifact is already in the local repository;
-and [remote](https://chonton.github.io/exists-maven-plugin/0.0.3/remote-mojo.html) checks
+and [remote](https://chonton.github.io/exists-maven-plugin/0.0.4/remote-mojo.html) checks
 if the just built artifact is already in the remote repository.
 
 | Parameter | Default | Description |
