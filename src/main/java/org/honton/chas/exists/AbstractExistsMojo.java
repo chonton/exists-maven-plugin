@@ -156,6 +156,8 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
     return false;
   }
 
+  // https://cwiki.apache.org/confluence/display/MAVEN/Remote+repository+layout
+
   private String getRepositoryUri() throws MojoExecutionException {
     Matcher matcher = GAV_PARSER.matcher(project);
     if (!matcher.matches()) {
@@ -165,9 +167,11 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
     String artifactId = matcher.group(2);
     String version = matcher.group(3);
 
+    // ${groupId.replace('.','/')}/${artifactId}${platformId==null?'':'-'+platformId}/${version}/
+    // ${artifactId}${platformId==null?'':'-'+platformId}-${version}${classifier==null?'':'-'+classifier}.${type}
     return getRepositoryBase() + '/'
         + groupId.replace('.', '/') + '/'
-        + artifactId.replace('.', '/') + '/'
+        + artifactId + '/'
         + version + '/'
         + artifact;
   }
