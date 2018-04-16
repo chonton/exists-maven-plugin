@@ -12,7 +12,7 @@ if the just built artifact is already in the remote repository.
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 |project    |${project.groupId}:${project.artifactId}:${project.version}| The project within the repository to query|
-|artifact   |${project.artifactId}-${project.version}.pom|The artifact within the project to query|
+|artifact   |${project.artifactId}-${project.version}.{packaging}|The artifact within the project to query|
 |property   |maven.deploy.skip|The property to receive the result of the query|
 |userProperty|false|If the property should be set as a user property, to be available in child projects|
 |useChecksum|${createChecksum}|Use checksum to compare artifacts (Checksums only available when install plugin is so configured.)|
