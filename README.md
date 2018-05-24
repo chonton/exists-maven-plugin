@@ -2,11 +2,11 @@
 
 Check if a maven artifact exists. Designed around the use case of skipping deployment if the stable version already exists.
 
-Mojo details at [plugin info](https://chonton.github.io/exists-maven-plugin/0.0.5/plugin-info.html)
+Mojo details at [plugin info](https://chonton.github.io/exists-maven-plugin/0.0.6/plugin-info.html)
 
-Two basic goals: [local](https://chonton.github.io/exists-maven-plugin/0.0.5/local-mojo.html) checks
+Two basic goals: [local](https://chonton.github.io/exists-maven-plugin/0.0.6/local-mojo.html) checks
 if the just built artifact is already in the local repository;
-and [remote](https://chonton.github.io/exists-maven-plugin/0.0.5/remote-mojo.html) checks
+and [remote](https://chonton.github.io/exists-maven-plugin/0.0.6/remote-mojo.html) checks
 if the just built artifact is already in the remote repository.
 
 | Parameter | Default | Description |
@@ -34,7 +34,7 @@ Typical use:
       <plugin>
         <groupId>org.honton.chas</groupId>
         <artifactId>exists-maven-plugin</artifactId>
-        <version>0.0.5</version>
+        <version>0.0.6</version>
         <executions>
           <execution>
             <goals>
@@ -47,3 +47,6 @@ Typical use:
     </plugins>
   </build>
 ```
+
+## Changelog
+Version 0.0.6 fixes [https://github.com/chonton/exists-maven-plugin/issues/7](#7: avoid BUILD FAILED when useChecksum is used with no remote)

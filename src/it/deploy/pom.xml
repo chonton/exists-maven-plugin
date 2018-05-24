@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.honton.chas</groupId>
     <artifactId>exists-it-parent</artifactId>
-    <version>0.0.5</version>
+    <version>0.0.6</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   <artifactId>exists-deploy-it</artifactId>
