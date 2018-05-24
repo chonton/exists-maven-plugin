@@ -47,6 +47,3 @@ Typical use:
     </plugins>
   </build>
 ```
-
-## Changelog
-Version 0.0.6 fixes [https://github.com/chonton/exists-maven-plugin/issues/7](#7: avoid BUILD FAILED when useChecksum is used with no remote)
