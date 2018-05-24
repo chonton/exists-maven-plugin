@@ -142,18 +142,20 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
     String uri = getRepositoryUri();
     getLog().debug("checking for resource " + uri);
 
-    byte[] priorChecksumBytes = getRemoteChecksum(uri  + ".sha1" );
-    if(priorChecksumBytes == null) {
-      return null;
+    byte[] priorChecksumBytes;
+    try {
+      priorChecksumBytes = getRemoteChecksum(uri + ".sha1");
+    } catch (MojoExecutionException ex) {
+      getLog().debug("unable to get priorChecksum. Reason:"+ ex.getMessage(), ex);
     }
 
-    String priorChecksum = new String(priorChecksumBytes, StandardCharsets.ISO_8859_1);
+    String priorChecksum = priorChecksumBytes == null ? "" : new String(priorChecksumBytes, StandardCharsets.ISO_8859_1);
     String buildChecksum = getArtifactChecksum();
     if(priorChecksum.equalsIgnoreCase(buildChecksum)) {
-      return true;
+      return Boolean.TRUE;
     }
     getLog().debug("buildChecksum(" + buildChecksum + ") != priorChecksum(" + priorChecksum + ")");
-    return false;
+    return Boolean.FALSE;
   }
 
   // https://cwiki.apache.org/confluence/display/MAVEN/Remote+repository+layout
