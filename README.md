@@ -2,11 +2,11 @@
 
 Check if a maven artifact exists. Designed around the use case of skipping deployment if the stable version already exists.
 
-Mojo details at [plugin info](https://chonton.github.io/exists-maven-plugin/0.0.6/plugin-info.html)
+Mojo details at [plugin info](https://chonton.github.io/exists-maven-plugin/0.0.7/plugin-info.html)
 
-Two basic goals: [local](https://chonton.github.io/exists-maven-plugin/0.0.6/local-mojo.html) checks
+Two basic goals: [local](https://chonton.github.io/exists-maven-plugin/0.0.7/local-mojo.html) checks
 if the just built artifact is already in the local repository;
-and [remote](https://chonton.github.io/exists-maven-plugin/0.0.6/remote-mojo.html) checks
+and [remote](https://chonton.github.io/exists-maven-plugin/0.0.7/remote-mojo.html) checks
 if the just built artifact is already in the remote repository.
 
 | Parameter | Default | Description |
@@ -23,6 +23,7 @@ if the just built artifact is already in the remote repository.
 |snapshotServerId|${project.distributionManagement.snapshotRepository.id}|For remote goal, the server ID to use for snapshot authentication and proxy settings|
 |failIfExists|${failIfExists}|Fail the build if the artifact already exists|
 |failIfNotExists|${failIfNotExists}|Fail the build if the artifact does not exist|
+|failIfNotMatches|${failIfNotMatches}|Fail the build if the artifact exists and useChecksum is set and checksums do not match|
 |skip|${exists.skip}|Skip executing the plugin|
 
 Typical use:
@@ -34,7 +35,7 @@ Typical use:
       <plugin>
         <groupId>org.honton.chas</groupId>
         <artifactId>exists-maven-plugin</artifactId>
-        <version>0.0.6</version>
+        <version>0.0.7</version>
         <executions>
           <execution>
             <goals>

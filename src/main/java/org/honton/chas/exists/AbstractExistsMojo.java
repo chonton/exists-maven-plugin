@@ -1,5 +1,11 @@
 package org.honton.chas.exists;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
@@ -7,13 +13,6 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.security.NoSuchAlgorithmException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Set a property if the artifact in a local or remote repository is same as the just built artifact.
@@ -73,6 +72,15 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
   @Parameter(defaultValue = "${failIfNotExists}")
   private boolean failIfNotExists;
 
+
+  /**
+   * Fail the build if the artifact checksum does not match the current repository artifact.
+   *
+   * @since 0.0.7
+   */
+  @Parameter(defaultValue = "${failIfNotMatches}")
+  private boolean failIfNotMatches;
+
   /**
    * Skip executing this plugin
    *
@@ -98,46 +106,57 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
       return;
     }
     try {
-      Boolean matches = useChecksum ? verifyWithChecksum() : verifyWithExistence();
-      if (matches != null) {
-        if (failIfExists && matches) {
-          throw new MojoFailureException("Artifact already exists in repository: " + project + "/" + artifact);
-        } else if (failIfNotExists && !matches) {
-          throw new MojoFailureException("Artifact does not exist in repository: " + project + "/" + artifact);
-        }
-        String propertyName = getPropertyName();
-        String value = Boolean.toString(matches);
-        if (userProperty) {
-          getLog().info("setting user property " + propertyName + "=" + value);
-          session.getUserProperties().setProperty(propertyName, value);
-        } else {
-          getLog().info("setting " + propertyName + "=" + value);
-          mavenProject.getProperties().setProperty(propertyName, value);
-        }
+      if (skipIfSnapshot && isSnapshot()) {
+        getLog().debug("skipping -SNAPSHOT");
+        return;
       }
+      boolean exists = verifyExistence();
+
+      if(exists && useChecksum) {
+        exists = verifyChecksum();
+      }
+
+      String propertyName = getPropertyName();
+      String value = Boolean.toString(exists);
+      if (userProperty) {
+        getLog().info("setting user property " + propertyName + "=" + value);
+        session.getUserProperties().setProperty(propertyName, value);
+      } else {
+        getLog().info("setting " + propertyName + "=" + value);
+        mavenProject.getProperties().setProperty(propertyName, value);
+      }
+    } catch (MojoExecutionException|MojoFailureException e) {
+      throw e;
     } catch (Exception e) {
       throw new MojoExecutionException(e.getMessage(), e);
     }
   }
 
-  private Boolean verifyWithExistence() throws IOException, MojoExecutionException {
-    if (skipIfSnapshot && isSnapshot()) {
-      getLog().debug("skipping -SNAPSHOT");
-      return null;
-    }
-
+  private boolean verifyExistence() throws IOException, MojoExecutionException, MojoFailureException {
     String uri = getRepositoryUri();
     getLog().debug("checking for resource at " + uri);
-    return checkArtifactExists(uri);
+    boolean exists = checkArtifactExists(uri);
+    if (exists) {
+      if (failIfExists) {
+        throw new MojoFailureException(
+            "Artifact already exists in repository: " + project + "/" + artifact);
+      }
+    } else {
+      if (failIfNotExists) {
+        throw new MojoFailureException(
+            "Artifact does not exist in repository: " + project + "/" + artifact);
+      }
+    }
+    return exists;
   }
 
   protected boolean isSnapshot() {
     return project.endsWith("-SNAPSHOT");
   }
 
-  protected abstract Boolean checkArtifactExists(String uri) throws IOException, MojoExecutionException;
+  protected abstract boolean checkArtifactExists(String uri) throws IOException, MojoExecutionException;
 
-  private Boolean verifyWithChecksum()
+  private boolean verifyChecksum()
       throws IOException, MojoFailureException, NoSuchAlgorithmException, MojoExecutionException {
     String uri = getRepositoryUri();
     getLog().debug("checking for resource " + uri);
@@ -145,10 +164,14 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
     String priorChecksum = getPriorChecksum(uri);
     String buildChecksum = getArtifactChecksum();
     if(buildChecksum.equalsIgnoreCase(priorChecksum)) {
-      return Boolean.TRUE;
+      return true;
     }
-    getLog().debug("buildChecksum(" + buildChecksum + ") != priorChecksum(" + priorChecksum + ")");
-    return Boolean.FALSE;
+    String message = "buildChecksum(" + buildChecksum + ") != priorChecksum(" + priorChecksum + ")";
+    getLog().debug(message);
+    if (failIfNotMatches) {
+      throw new MojoFailureException(message);
+    }
+    return false;
   }
 
   private String getPriorChecksum(String uri) throws IOException {

@@ -4,7 +4,7 @@
 
   <groupId>org.honton.chas</groupId>
   <artifactId>exists-it-parent</artifactId>
-  <version>0.0.6</version>
+  <version>0.0.7</version>
   <packaging>pom</packaging>
 
   <modules>
@@ -72,7 +72,7 @@
         <plugin>
           <groupId>org.honton.chas</groupId>
           <artifactId>exists-maven-plugin</artifactId>
-          <version>0.0.6</version>
+          <version>0.0.7</version>
         </plugin>
 
         <plugin>

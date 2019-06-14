@@ -41,7 +41,7 @@ public class LocalExistsMojo extends AbstractExistsMojo {
   }
 
   @Override
-  protected Boolean checkArtifactExists(String uri) throws IOException {
+  protected boolean checkArtifactExists(String uri) throws IOException {
     return new File(uri).isFile();
   }
 
