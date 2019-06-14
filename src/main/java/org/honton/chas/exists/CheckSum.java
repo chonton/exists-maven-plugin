@@ -1,5 +1,7 @@
 package org.honton.chas.exists;
 
+import com.google.common.io.BaseEncoding;
+import com.google.common.io.Closeables;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -7,7 +9,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import javax.xml.bind.DatatypeConverter;
 import org.codehaus.plexus.util.IOUtil;
 
 /**
@@ -27,9 +28,9 @@ public class CheckSum {
     try {
       digest.reset();
       readStream(fis);
-      return DatatypeConverter.printHexBinary(digest.digest());
+      return BaseEncoding.base16().encode(digest.digest());
     } finally {
-      IOUtil.close(fis);
+      Closeables.closeQuietly(fis);
     }
   }
 
