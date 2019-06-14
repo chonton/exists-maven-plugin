@@ -8,8 +8,9 @@
   <packaging>pom</packaging>
 
   <modules>
-    <module>deploy</module>
     <module>fail</module>
+    <module>deploy</module>
+    <module>deploy-with-auth</module>
     <module>install</module>
   </modules>
 

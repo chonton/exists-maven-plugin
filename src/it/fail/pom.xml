@@ -32,16 +32,6 @@
         <artifactId>exists-maven-plugin</artifactId>
         <executions>
           <execution>
-            <id>after-installation</id>
-            <goals>
-              <goal>local</goal>
-            </goals>
-            <configuration>
-              <failIfExists>true</failIfExists>
-            </configuration>
-            <!-- default phase is verify -->
-          </execution>
-          <execution>
             <id>before-installation</id>
             <goals>
               <goal>local</goal>
@@ -50,6 +40,17 @@
             <configuration>
               <failIfExists>true</failIfExists>
             </configuration>
+          </execution>
+
+          <execution>
+            <id>after-installation</id>
+            <goals>
+              <goal>local</goal>
+            </goals>
+            <configuration>
+              <failIfExists>true</failIfExists>
+            </configuration>
+            <!-- default phase is verify -->
           </execution>
         </executions>
       </plugin>

@@ -19,8 +19,7 @@ import java.nio.file.Files;
   BufferedReader reader = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8);
 
   findLine(reader, "\\[INFO\\] --- exists-maven-plugin:[0-9\\.]*:local \\(before-installation\\) @ exists-install-it ---");
+  findLine(reader, "\\[INFO\\] org.honton.chas:exists-install-it:[0-9\\.]* does not exist");
+
   findLine(reader, "\\[INFO\\] --- exists-maven-plugin:[0-9\\.]*:local \\(after-installation\\) @ exists-install-it ---");
   findLine(reader, "\\[INFO\\] setting maven.install.skip=true");
-
-
-

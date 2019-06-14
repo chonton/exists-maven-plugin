@@ -19,5 +19,7 @@ import java.nio.file.Files;
   BufferedReader reader = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8);
 
   findLine(reader, "\\[INFO\\] --- exists-maven-plugin:[0-9\\.]*:local \\(before-installation\\) @ exists-fail-it ---");
+  findLine(reader, "\\[INFO\\] org.honton.chas:exists-fail-it:[0-9\\.]* does not exist");
+
   findLine(reader, "\\[INFO\\] --- exists-maven-plugin:[0-9\\.]*:local \\(after-installation\\) @ exists-fail-it ---");
   findLine(reader, "\\[ERROR\\] Failed to execute goal org.honton.chas:exists-maven-plugin:[0-9\\.]*:local \\(after-installation\\) on project exists-fail-it: Artifact already exists in repository: org.honton.chas:exists-fail-it:[0-9\\.]*/exists-fail-it-[0-9\\.]*.jar -> \\[Help 1\\]");

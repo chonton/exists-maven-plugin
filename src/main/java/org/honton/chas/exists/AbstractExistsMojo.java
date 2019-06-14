@@ -1,9 +1,6 @@
 package org.honton.chas.exists;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.security.NoSuchAlgorithmException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.maven.artifact.Artifact;
@@ -109,14 +106,13 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
         getLog().debug("skipping -SNAPSHOT");
         return;
       }
-      boolean exists = verifyExistence();
-      if(!exists) {
-        getLog().debug("artifact does not exist");
+
+      String uri = getRepositoryUri();
+      if (!artifactExists(uri)) {
         return;
       }
 
-      if(useChecksum && verifyChecksum()) {
-        getLog().debug("checksum matches");
+      if (useChecksum && !checksumMatches(uri)) {
         return;
       }
 
@@ -128,16 +124,15 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
         getLog().info("setting " + propertyName + "=true");
         mavenProject.getProperties().setProperty(propertyName, "true");
       }
-    } catch (MojoExecutionException|MojoFailureException e) {
+    } catch (MojoExecutionException | MojoFailureException e) {
       throw e;
     } catch (Exception e) {
       throw new MojoExecutionException(e.getMessage(), e);
     }
   }
 
-  private boolean verifyExistence() throws Exception {
-    String uri = getRepositoryUri();
-    getLog().debug("checking for resource at " + uri);
+  private boolean artifactExists(String uri) throws Exception {
+    getLog().debug("Checking for artifact at " + uri);
     boolean exists = checkArtifactExists(uri);
     if (exists) {
       if (failIfExists) {
@@ -145,6 +140,7 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
             "Artifact already exists in repository: " + project + "/" + artifact);
       }
     } else {
+      getLog().info(project + " does not exist");
       if (failIfNotExists) {
         throw new MojoFailureException(
             "Artifact does not exist in repository: " + project + "/" + artifact);
@@ -159,21 +155,19 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
 
   protected abstract boolean checkArtifactExists(String uri) throws Exception;
 
-  private boolean verifyChecksum() throws Exception {
-    String uri = getRepositoryUri();
+  private boolean checksumMatches(String uri) throws Exception {
     getLog().debug("checking for resource " + uri);
-
-    String priorChecksum = getPriorChecksum(uri);
-    String buildChecksum = getArtifactChecksum();
-    if (buildChecksum.equalsIgnoreCase(priorChecksum)) {
-      return true;
+    String prior = getPriorChecksum(uri);
+    String build = getArtifactChecksum();
+    boolean matches = build.equalsIgnoreCase(prior);
+    if (!matches) {
+      getLog().info(project + " checksum does not match");
+      if (failIfNotMatch) {
+        String msg = "buildChecksum(" + build + ") != priorChecksum(" + prior + ")";
+        throw new MojoFailureException(msg);
+      }
     }
-    String message = "buildChecksum(" + buildChecksum + ") != priorChecksum(" + priorChecksum + ")";
-    getLog().info(message);
-    if (failIfNotMatch) {
-      throw new MojoFailureException(message);
-    }
-    return false;
+    return matches;
   }
 
   private String getPriorChecksum(String uri) throws Exception {
@@ -185,8 +179,9 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
   private String getRepositoryUri() throws Exception {
     Matcher matcher = GAV_PARSER.matcher(project);
     if (!matcher.matches()) {
-      return getRepositoryBase() + '/' + project + '/' + artifact;
+      throw new MojoFailureException("Project property must be in format groupId:artifactId:version");
     }
+
     String groupId = matcher.group(1);
     String artifactId = matcher.group(2);
     String version = matcher.group(3);
