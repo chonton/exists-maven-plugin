@@ -19,32 +19,35 @@ import org.apache.maven.project.MavenProject;
  */
 public abstract class AbstractExistsMojo extends AbstractMojo {
 
-  @Parameter(defaultValue = "${project}", readonly = true)
+  @Parameter(defaultValue = "${project}", required = true, readonly = true)
   private MavenProject mavenProject;
+
+  @Parameter(defaultValue = "${session}", required = true, readonly = true)
+  private MavenSession session;
 
   /**
    * The project Group:Artifact:Version to compare.  Defaults to the current project's GAV.
    */
-  @Parameter(defaultValue = "${project.groupId}:${project.artifactId}:${project.version}")
+  @Parameter(property = "exists.project", defaultValue = "${project.groupId}:${project.artifactId}:${project.version}")
   private String project;
 
   /**
    * The artifact of the project to compare.  Defaults to the project's principal artifact.
    */
-  @Parameter(defaultValue = "${project.build.finalName}.${project.packaging}")
+  @Parameter(property = "exists.artifact", defaultValue = "${project.build.finalName}.${project.packaging}")
   private String artifact;
 
   /**
    * Set whether checksum is used to compare artifacts.  The default is the <em>install</em>
    * plugin's configuration to create checksums (property <em>createChecksum</em>).
    */
-  @Parameter(defaultValue = "${createChecksum}")
+  @Parameter(property = "exists.useChecksum", defaultValue = "true")
   private boolean useChecksum;
 
   /**
    * If checksums are not used, should this plugin skip checking SNAPSHOT versions?
    */
-  @Parameter(defaultValue = "true")
+  @Parameter(property = "exists.skipIfSnapshot", defaultValue = "true")
   private boolean skipIfSnapshot;
 
   /**
@@ -53,7 +56,7 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
    *
    * @since 0.0.3
    */
-  @Parameter(defaultValue = "false")
+  @Parameter(property = "exists.userProperty", defaultValue = "false")
   private boolean userProperty;
 
   /**
@@ -61,7 +64,7 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
    *
    * @since 0.0.3
    */
-  @Parameter(defaultValue = "${failIfExists}")
+  @Parameter(property = "exists.failIfExists", defaultValue = "false")
   private boolean failIfExists;
 
   /**
@@ -69,34 +72,30 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
    *
    * @since 0.0.3
    */
-  @Parameter(defaultValue = "${failIfNotExists}")
+  @Parameter(property = "exists.failIfNotExists", defaultValue = "false")
   private boolean failIfNotExists;
-
 
   /**
    * Fail the build if the artifact checksum does not match the current repository artifact.
    *
    * @since 0.0.7
    */
-  @Parameter(defaultValue = "${failIfNotMatches}")
-  private boolean failIfNotMatches;
+  @Parameter(property = "exists.failIfNotMatch", defaultValue = "true")
+  private boolean failIfNotMatch;
 
   /**
    * Skip executing this plugin
    *
    * @since 0.0.4
    */
-  @Parameter(defaultValue = "false", property = "exists.skip")
+  @Parameter(property = "exists.skip", defaultValue = "false")
   private boolean skip;
-
-  @Parameter(defaultValue = "${session}", required = true, readonly = true)
-  private MavenSession session;
 
   private static final Pattern GAV_PARSER = Pattern.compile("^([^:]*):([^:]*):([^:]*)$");
 
-  protected abstract byte[] getRemoteChecksum(String s) throws MojoExecutionException, IOException;
+  protected abstract String getRemoteChecksum(String s) throws Exception;
 
-  protected abstract String getRepositoryBase() throws MojoExecutionException;
+  protected abstract String getRepositoryBase() throws Exception;
 
   protected abstract String getPropertyName();
 
@@ -111,19 +110,23 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
         return;
       }
       boolean exists = verifyExistence();
+      if(!exists) {
+        getLog().debug("artifact does not exist");
+        return;
+      }
 
-      if(exists && useChecksum) {
-        exists = verifyChecksum();
+      if(useChecksum && verifyChecksum()) {
+        getLog().debug("checksum matches");
+        return;
       }
 
       String propertyName = getPropertyName();
-      String value = Boolean.toString(exists);
       if (userProperty) {
-        getLog().info("setting user property " + propertyName + "=" + value);
-        session.getUserProperties().setProperty(propertyName, value);
+        getLog().info("setting user property " + propertyName + "=true");
+        session.getUserProperties().setProperty(propertyName, "true");
       } else {
-        getLog().info("setting " + propertyName + "=" + value);
-        mavenProject.getProperties().setProperty(propertyName, value);
+        getLog().info("setting " + propertyName + "=true");
+        mavenProject.getProperties().setProperty(propertyName, "true");
       }
     } catch (MojoExecutionException|MojoFailureException e) {
       throw e;
@@ -132,7 +135,7 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
     }
   }
 
-  private boolean verifyExistence() throws IOException, MojoExecutionException, MojoFailureException {
+  private boolean verifyExistence() throws Exception {
     String uri = getRepositoryUri();
     getLog().debug("checking for resource at " + uri);
     boolean exists = checkArtifactExists(uri);
@@ -154,39 +157,32 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
     return project.endsWith("-SNAPSHOT");
   }
 
-  protected abstract boolean checkArtifactExists(String uri) throws IOException, MojoExecutionException;
+  protected abstract boolean checkArtifactExists(String uri) throws Exception;
 
-  private boolean verifyChecksum()
-      throws IOException, MojoFailureException, NoSuchAlgorithmException, MojoExecutionException {
+  private boolean verifyChecksum() throws Exception {
     String uri = getRepositoryUri();
     getLog().debug("checking for resource " + uri);
 
     String priorChecksum = getPriorChecksum(uri);
     String buildChecksum = getArtifactChecksum();
-    if(buildChecksum.equalsIgnoreCase(priorChecksum)) {
+    if (buildChecksum.equalsIgnoreCase(priorChecksum)) {
       return true;
     }
     String message = "buildChecksum(" + buildChecksum + ") != priorChecksum(" + priorChecksum + ")";
-    getLog().debug(message);
-    if (failIfNotMatches) {
+    getLog().info(message);
+    if (failIfNotMatch) {
       throw new MojoFailureException(message);
     }
     return false;
   }
 
-  private String getPriorChecksum(String uri) throws IOException {
-    try {
-      byte[] priorChecksumBytes = getRemoteChecksum(uri + ".sha1");
-      return new String(priorChecksumBytes, StandardCharsets.ISO_8859_1);
-    } catch (MojoExecutionException ex) {
-      getLog().debug("Unable to get prior checksum. Reason:" + ex.getMessage(), ex);
-      return null;
-    }
+  private String getPriorChecksum(String uri) throws Exception {
+    return getRemoteChecksum(uri);
   }
 
   // https://cwiki.apache.org/confluence/display/MAVEN/Remote+repository+layout
 
-  private String getRepositoryUri() throws MojoExecutionException {
+  private String getRepositoryUri() throws Exception {
     Matcher matcher = GAV_PARSER.matcher(project);
     if (!matcher.matches()) {
       return getRepositoryBase() + '/' + project + '/' + artifact;
@@ -204,7 +200,7 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
         + artifact;
   }
 
-  private String getArtifactChecksum() throws IOException, MojoFailureException, NoSuchAlgorithmException {
+  private String getArtifactChecksum() throws Exception {
     CheckSum signer = new CheckSum("SHA-1");
     Artifact mavenArtifact = mavenProject.getArtifact();
     File file;

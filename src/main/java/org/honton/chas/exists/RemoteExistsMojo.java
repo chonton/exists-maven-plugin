@@ -3,6 +3,8 @@ package org.honton.chas.exists;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -41,14 +43,14 @@ public class RemoteExistsMojo extends AbstractExistsMojo
    * The property to set if the artifact exists in the deploy repository. The default property of
    * <em>maven.deploy.skip</em> may cause the deploy plugin to skip execution.
    */
-  @Parameter(defaultValue = "maven.deploy.skip")
+  @Parameter(property = "exists.property", defaultValue = "maven.deploy.skip")
   private String property;
 
   /**
    * The URL of the remote repository to check for distribution artifacts. The default value is the
    * repository defined in the pom's distributionManagement / repository section.
    */
-  @Parameter(defaultValue = "${project.distributionManagement.repository.url}")
+  @Parameter(property = "exists.repository", defaultValue = "${project.distributionManagement.repository.url}")
   private String repository;
 
   /**
@@ -56,7 +58,7 @@ public class RemoteExistsMojo extends AbstractExistsMojo
    * is the snapshot repository defined in the pom's distributionManagement / snapshotRepository
    * section.
    */
-  @Parameter(defaultValue = "${project.distributionManagement.snapshotRepository.url}")
+  @Parameter(property = "exists.snapshotRepository", defaultValue = "${project.distributionManagement.snapshotRepository.url}")
   private String snapshotRepository;
 
   /**
@@ -65,7 +67,7 @@ public class RemoteExistsMojo extends AbstractExistsMojo
    *
    * @since 0.0.3
    */
-  @Parameter(defaultValue = "${project.distributionManagement.repository.id}")
+  @Parameter(property = "exists.serverId", defaultValue = "${project.distributionManagement.repository.id}")
   private String serverId;
 
   /**
@@ -74,7 +76,7 @@ public class RemoteExistsMojo extends AbstractExistsMojo
    *
    * @since 0.0.3
    */
-  @Parameter(defaultValue = "${project.distributionManagement.snapshotRepository.id}")
+  @Parameter(property = "exists.snapshotServerId", defaultValue = "${project.distributionManagement.snapshotRepository.id}")
   private String snapshotServerId;
 
   @Parameter(defaultValue = "${settings}", required = true, readonly = true)
@@ -93,7 +95,7 @@ public class RemoteExistsMojo extends AbstractExistsMojo
   }
 
   @Override
-  protected String getRepositoryBase() throws MojoExecutionException {
+  protected String getRepositoryBase() throws Exception {
     if (isSnapshot()) {
       if (snapshotRepository == null) {
         throw new MojoExecutionException("distributionManagement snapshotRepository is not set");
@@ -108,7 +110,7 @@ public class RemoteExistsMojo extends AbstractExistsMojo
   }
 
   @Override
-  protected boolean checkArtifactExists(String uri) throws IOException, MojoExecutionException {
+  protected boolean checkArtifactExists(String uri) throws Exception {
     String path = getPath(uri);
     try (WagonHelper wagonHelper = new WagonHelper(getRepositoryBase())) {
       return wagonHelper.resourceExists(path);
@@ -116,16 +118,16 @@ public class RemoteExistsMojo extends AbstractExistsMojo
   }
 
   @Override
-  protected byte[] getRemoteChecksum(String uri) throws MojoExecutionException {
+  protected String getRemoteChecksum(String uri) throws Exception {
     // This method is only called to read the hash, so we can safely read all the content into memory!
     try (WagonHelper wagonHelper = new WagonHelper(getRepositoryBase())) {
       ByteArrayOutputStream baos = new ByteArrayOutputStream();
-      wagonHelper.get(getPath(uri), baos);
-      return baos.toByteArray();
+      wagonHelper.get(getPath(uri + ".sha1"), baos);
+      return new String(baos.toByteArray(), StandardCharsets.ISO_8859_1);
     }
   }
 
-  private String getPath(String uri) throws MojoExecutionException {
+  private String getPath(String uri) throws Exception {
     String repositoryBase = getRepositoryBase();
     if (!uri.startsWith(repositoryBase + "/")) {
       throw new IllegalArgumentException("Invalid URL: " + uri);
@@ -135,20 +137,14 @@ public class RemoteExistsMojo extends AbstractExistsMojo
 
   private class WagonHelper implements AutoCloseable {
 
-    private final String uri;
     private final Wagon wagon;
 
-    WagonHelper(String uri) throws MojoExecutionException {
-      this.uri = uri;
-      try {
-        String id = isSnapshot() ? snapshotServerId : serverId;
-        wagon = connectWagon(id == null ? "" : id, uri);
-      } catch (WagonException | ComponentLookupException e) {
-        throw new MojoExecutionException("Could not create Wagon for " + uri, e);
-      }
+    WagonHelper(String uri) throws Exception {
+      String id = isSnapshot() ? snapshotServerId : serverId;
+      wagon = connectWagon(id == null ? "" : id, uri);
     }
 
-    Wagon connectWagon(String serverId, String url) throws WagonException, ComponentLookupException {
+    Wagon connectWagon(String serverId, String url) throws Exception {
       Repository repository = new Repository(serverId, url);
       Wagon wagon = container.lookup(Wagon.class, repository.getProtocol());
       wagon.connect(repository, getAuthInfo(serverId), getProxyInfo());
@@ -185,20 +181,12 @@ public class RemoteExistsMojo extends AbstractExistsMojo
       return authInfo;
     }
 
-    boolean resourceExists(String resourceName) throws MojoExecutionException {
-      try {
-        return wagon.resourceExists(resourceName);
-      } catch (WagonException e) {
-        throw new MojoExecutionException("Checking remote resource failed for " + uri, e);
-      }
+    boolean resourceExists(String resourceName) throws Exception {
+      return wagon.resourceExists(resourceName);
     }
 
-    void get(String resourceName, OutputStream outputStream) throws MojoExecutionException {
-      try {
-        ((StreamingWagon) wagon).getToStream(resourceName, outputStream);
-      } catch (WagonException e) {
-        throw new MojoExecutionException("Fetching remote checksum failed for " + uri, e);
-      }
+    void get(String resourceName, OutputStream outputStream) throws Exception {
+      ((StreamingWagon) wagon).getToStream(resourceName, outputStream);
     }
 
     @Override

@@ -19,9 +19,7 @@ import java.nio.file.Files;
   BufferedReader reader = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8);
 
   findLine(reader, "\\[INFO\\] --- exists-maven-plugin:[0-9\\.]*:remote \\(before-installation\\) @ exists-deploy-it ---");
-  findLine(reader, "\\[INFO\\] setting maven.deploy.skip=false");
   findLine(reader, "\\[INFO\\] --- exists-maven-plugin:[0-9\\.]*:remote \\(before-installation-with-auth\\) @ exists-deploy-it ---");
-  findLine(reader, "\\[INFO\\] setting maven.deploy.skip=false");
   findLine(reader, "\\[INFO\\] --- exists-maven-plugin:[0-9\\.]*:remote \\(after-installation\\) @ exists-deploy-it ---");
   findLine(reader, "\\[INFO\\] setting maven.deploy.skip=true");
   findLine(reader, "\\[INFO\\] --- exists-maven-plugin:[0-9\\.]*:remote \\(after-installation-with-auth\\) @ exists-deploy-it ---");

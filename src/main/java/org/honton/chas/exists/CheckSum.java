@@ -23,15 +23,18 @@ public class CheckSum {
     digest = MessageDigest.getInstance(digestAlgorithm);
   }
 
-  public String getChecksum(File file) throws IOException {
+  public byte[] getChecksumBytes(File file) throws IOException {
     FileInputStream fis = new FileInputStream(file);
     try {
       digest.reset();
       readStream(fis);
-      return BaseEncoding.base16().encode(digest.digest());
+      return digest.digest();
     } finally {
       Closeables.closeQuietly(fis);
     }
+  }
+  public String getChecksum(File file) throws IOException {
+    return BaseEncoding.base16().encode(getChecksumBytes(file));
   }
 
   private void readStream(FileInputStream fis) throws IOException {
