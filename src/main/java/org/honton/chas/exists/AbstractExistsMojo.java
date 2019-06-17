@@ -35,11 +35,10 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
   private String artifact;
 
   /**
-   * Set whether checksum is used to compare artifacts.  The default is the <em>install</em>
-   * plugin's configuration to create checksums (property <em>createChecksum</em>).
+   * Set whether checksum is used to compare artifacts.
    */
-  @Parameter(property = "exists.useChecksum", defaultValue = "true")
-  private boolean useChecksum;
+  @Parameter(property = "exists.cmpChecksum", defaultValue = "false")
+  private boolean cmpChecksum;
 
   /**
    * If checksums are not used, should this plugin skip checking SNAPSHOT versions?
@@ -75,7 +74,7 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
   /**
    * Fail the build if the artifact checksum does not match the current repository artifact.
    *
-   * @since 0.0.7
+   * @since 0.1.0
    */
   @Parameter(property = "exists.failIfNotMatch", defaultValue = "true")
   private boolean failIfNotMatch;
@@ -112,7 +111,7 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
         return;
       }
 
-      if (useChecksum && !checksumMatches(uri)) {
+      if (cmpChecksum && !checksumMatches(uri)) {
         return;
       }
 

@@ -19,7 +19,7 @@ and  {{{../remote-mojo.html}exists:remote}} will use the sha1 checksum to determ
       <plugin>
         <groupId>org.honton.chas</groupId>
         <artifactId>exists-maven-plugin</artifactId>
-        <version>0.0.7</version>
+        <version>0.1.0</version>
         <executions>
           <execution>
             <goals>

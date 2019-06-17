@@ -9,5 +9,15 @@
         </p>
       </answer>
     </faq>
+    <faq id="question">
+      <question>Why does my build checksum not match?</question>
+      <answer>
+        <p>Maven built jars are generally not reproducible.
+        See <a href="https://purpledevcat.com/2018/02/14/reproducible-builds-in-java.html">Reproducible Builds in Java</a>
+         and <a href="http://zlika.github.io/presentations/devoxx_fr_2016/reproducible-builds/slides_en.html#/_bit_for_bit_reproducible_builds_with_maven">Bit-for-bit reproducible builds with Maven</a>
+         for more details.  See <a href="https://zlika.github.io/reproducible-build-maven-plugin">reproducible-build-maven-plugin</a> for a plugin which may help.
+        </p>
+      </answer>
+    </faq>
   </part>
 </faqs>

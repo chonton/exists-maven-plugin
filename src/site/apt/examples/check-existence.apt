@@ -14,7 +14,7 @@ This usually does not make sense in the case of -SNAPSHOTS, so usually you will 
       <plugin>
         <groupId>org.honton.chas</groupId>
         <artifactId>exists-maven-plugin</artifactId>
-        <version>0.0.7</version>
+        <version>0.1.0</version>
         <executions>
           <execution>
             <goals>
