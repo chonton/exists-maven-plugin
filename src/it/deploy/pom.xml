@@ -10,10 +10,6 @@
   </parent>
   <artifactId>exists-deploy-it</artifactId>
 
-  <properties>
-    <deploy.webserver.port>@deploy.webserver.port@</deploy.webserver.port>
-  </properties>
-
   <distributionManagement>
 
     <repository>
@@ -27,6 +23,10 @@
     </snapshotRepository>
 
   </distributionManagement>
+
+  <properties>
+    <deploy.webserver.port>@deploy.webserver.port@</deploy.webserver.port>
+  </properties>
 
   <dependencies>
 
@@ -47,7 +47,6 @@
     <plugins>
 
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
         <executions>
           <execution>
@@ -65,7 +64,6 @@
       </plugin>
 
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-deploy-plugin</artifactId>
         <executions>
           <!-- deploy in earlier than usual phase -->

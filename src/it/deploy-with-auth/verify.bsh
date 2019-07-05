@@ -18,8 +18,8 @@ import java.nio.file.Files;
   File file = new File(basedir, "build.log" );
   BufferedReader reader = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8);
 
-  findLine(reader, "\\[INFO\\] --- exists-maven-plugin:[0-9\\.]*:remote \\(before-installation-with-auth\\) @ exists-deploy-it ---");
-  findLine(reader, "\\[INFO\\] org.honton.chas:exists-deploy-it:[0-9\\.]* does not exist");
+  findLine(reader, "\\[INFO\\] --- exists-maven-plugin:[0-9\\.]*:remote \\(before-installation-with-auth\\) @ exists-deploy-with-auth-it ---");
+  findLine(reader, "\\[INFO\\] org.honton.chas:exists-deploy-with-auth-it:[0-9\\.]* does not exist");
 
-  findLine(reader, "\\[INFO\\] --- exists-maven-plugin:[0-9\\.]*:remote \\(after-installation-with-auth\\) @ exists-deploy-it ---");
+  findLine(reader, "\\[INFO\\] --- exists-maven-plugin:[0-9\\.]*:remote \\(after-installation-with-auth\\) @ exists-deploy-with-auth-it ---");
   findLine(reader, "\\[INFO\\] setting maven.deploy.skip=true");
