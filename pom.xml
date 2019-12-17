@@ -259,7 +259,7 @@
             <configuration>
               <rules>
                 <requireJavaVersion>
-                  <version>[8,)</version>
+                  <version>[1.8,)</version>
                 </requireJavaVersion>
                 <requireMavenVersion>
                   <version>[3.5,)</version>
@@ -375,6 +375,16 @@
   </reporting>
 
   <profiles>
+    <!-- make sure to release for Java 8 -->
+    <profile>
+      <activation>
+        <jdk>[9,)</jdk>
+      </activation>
+      <properties>
+        <maven.compiler.release>8</maven.compiler.release>
+      </properties>
+    </profile>
+
     <!-- publish site to github,
     1. mvn [clean install] site
     2. mvn -P gh-pages pre-site
