@@ -4,13 +4,14 @@
 
   <groupId>org.honton.chas</groupId>
   <artifactId>exists-it-parent</artifactId>
-  <version>0.1.0</version>
+  <version>0.2.0</version>
   <packaging>pom</packaging>
 
   <modules>
     <module>fail</module>
     <module>deploy</module>
     <module>deploy-with-auth</module>
+    <module>deploy-with-encrypted-auth</module>
     <module>install</module>
   </modules>
 
@@ -87,7 +88,7 @@
         <plugin>
           <groupId>org.honton.chas</groupId>
           <artifactId>exists-maven-plugin</artifactId>
-          <version>0.1.0</version>
+          <version>0.2.0</version>
         </plugin>
 
         <plugin>

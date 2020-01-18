@@ -1,11 +1,10 @@
 package org.honton.chas.exists;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -15,16 +14,16 @@ import org.apache.maven.settings.Settings;
 import org.apache.maven.wagon.ConnectionException;
 import org.apache.maven.wagon.StreamingWagon;
 import org.apache.maven.wagon.Wagon;
-import org.apache.maven.wagon.WagonException;
 import org.apache.maven.wagon.authentication.AuthenticationInfo;
 import org.apache.maven.wagon.proxy.ProxyInfo;
 import org.apache.maven.wagon.repository.Repository;
 import org.codehaus.plexus.PlexusConstants;
 import org.codehaus.plexus.PlexusContainer;
-import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.codehaus.plexus.context.Context;
 import org.codehaus.plexus.context.ContextException;
 import org.codehaus.plexus.personality.plexus.lifecycle.phase.Contextualizable;
+import org.sonatype.plexus.components.sec.dispatcher.SecDispatcher;
+import org.sonatype.plexus.components.sec.dispatcher.SecDispatcherException;
 
 /**
  * Set a property if the artifact in the remote repository is same as the just built artifact. The
@@ -81,6 +80,9 @@ public class RemoteExistsMojo extends AbstractExistsMojo
 
   @Parameter(defaultValue = "${settings}", required = true, readonly = true)
   private Settings settings;
+
+  @Component(role = org.sonatype.plexus.components.sec.dispatcher.SecDispatcher.class, hint = "default")
+  private SecDispatcher securityDispatcher;
 
   private PlexusContainer container;
 
@@ -167,7 +169,7 @@ public class RemoteExistsMojo extends AbstractExistsMojo
       return proxyInfo;
     }
 
-    AuthenticationInfo getAuthInfo(String serverId) {
+    AuthenticationInfo getAuthInfo(String serverId) throws SecDispatcherException {
       Server server = settings.getServer(serverId);
       if (server == null) {
         return null;
@@ -175,7 +177,7 @@ public class RemoteExistsMojo extends AbstractExistsMojo
 
       AuthenticationInfo authInfo = new AuthenticationInfo();
       authInfo.setUserName(server.getUsername());
-      authInfo.setPassword(server.getPassword());
+      authInfo.setPassword(securityDispatcher.decrypt(server.getPassword()));
       authInfo.setPassphrase(server.getPassphrase());
       authInfo.setPrivateKey(server.getPrivateKey());
       return authInfo;

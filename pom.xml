@@ -4,7 +4,7 @@
 
   <groupId>org.honton.chas</groupId>
   <artifactId>exists-maven-plugin</artifactId>
-  <version>0.1.0</version>
+  <version>0.2.0</version>
   <packaging>maven-plugin</packaging>
 
   <name>Artifact Exists Maven Plugin</name>
@@ -186,6 +186,9 @@
             <filterProperties>
               <webserver.port>1080</webserver.port>
             </filterProperties>
+            <properties>
+              <settings.security>${project.basedir}/src/it/settings-security.xml</settings.security>
+            </properties>
           </configuration>
         </plugin>
 
@@ -377,6 +380,7 @@
   <profiles>
     <!-- make sure to release for Java 8 -->
     <profile>
+      <id>release for java 8</id>
       <activation>
         <jdk>[9,)</jdk>
       </activation>

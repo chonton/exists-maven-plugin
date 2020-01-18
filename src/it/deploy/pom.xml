@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.honton.chas</groupId>
     <artifactId>exists-it-parent</artifactId>
-    <version>0.1.0</version>
+    <version>0.2.0</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   <artifactId>exists-deploy-it</artifactId>
@@ -35,6 +35,7 @@
       <artifactId>junit</artifactId>
       <scope>test</scope>
     </dependency>
+
     <dependency>
       <groupId>org.nanohttpd</groupId>
       <artifactId>nanohttpd</artifactId>
