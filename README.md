@@ -3,12 +3,12 @@
 Check if a maven artifact exists. Designed around the use case of skipping deployment if the stable version already exists.
 
 ## Goals
-There are two goals: [local](https://chonton.github.io/exists-maven-plugin/0.2.0/local-mojo.html) checks
+There are two goals: [local](https://chonton.github.io/exists-maven-plugin/0.3.0/local-mojo.html) checks
 if the just built artifact is already in the local repository;
-and [remote](https://chonton.github.io/exists-maven-plugin/0.2.0/remote-mojo.html) checks
+and [remote](https://chonton.github.io/exists-maven-plugin/0.3.0/remote-mojo.html) checks
 if the just built artifact is already in the remote repository.
 
-Mojo details at [plugin info](https://chonton.github.io/exists-maven-plugin/0.2.0/plugin-info.html)
+Mojo details at [plugin info](https://chonton.github.io/exists-maven-plugin/0.3.0/plugin-info.html)
 
 ## Parameters
 Every parameter can be set with a maven property **exists.**_<parameter_name\>_.  e.g. skip parameter can 
@@ -44,7 +44,7 @@ be set from command line -Dexists.skip=true
       <plugin>
         <groupId>org.honton.chas</groupId>
         <artifactId>exists-maven-plugin</artifactId>
-        <version>0.2.0</version>
+        <version>0.3.0</version>
         <executions>
           <execution>
             <goals>

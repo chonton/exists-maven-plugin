@@ -22,6 +22,7 @@ import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.context.Context;
 import org.codehaus.plexus.context.ContextException;
 import org.codehaus.plexus.personality.plexus.lifecycle.phase.Contextualizable;
+import org.sonatype.plexus.components.sec.dispatcher.DefaultSecDispatcher;
 import org.sonatype.plexus.components.sec.dispatcher.SecDispatcher;
 import org.sonatype.plexus.components.sec.dispatcher.SecDispatcherException;
 
@@ -174,6 +175,13 @@ public class RemoteExistsMojo extends AbstractExistsMojo
       if (server == null) {
         return null;
       }
+
+      /* begin https://github.com/chonton/exists-maven-plugin/issues/22 */
+      if (securityDispatcher instanceof DefaultSecDispatcher) {
+        ((DefaultSecDispatcher) securityDispatcher)
+            .setConfigurationFile("~/.m2/settings-security.xml");
+      }
+      /* end https://github.com/chonton/exists-maven-plugin/issues/22 */
 
       AuthenticationInfo authInfo = new AuthenticationInfo();
       authInfo.setUserName(server.getUsername());
