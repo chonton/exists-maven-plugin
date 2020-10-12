@@ -4,7 +4,7 @@
 
   <groupId>org.honton.chas</groupId>
   <artifactId>exists-it-parent</artifactId>
-  <version>0.3.0</version>
+  <version>0.4.0</version>
   <packaging>pom</packaging>
 
   <modules>
@@ -12,6 +12,7 @@
     <module>deploy</module>
     <module>deploy-with-auth</module>
     <module>deploy-with-encrypted-auth</module>
+    <module>deploy-with-header-auth</module>
     <module>install</module>
   </modules>
 
@@ -29,7 +30,7 @@
       <dependency>
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
-        <version>4.12</version>
+        <version>4.13.1</version>
       </dependency>
 
     </dependencies>
@@ -88,7 +89,7 @@
         <plugin>
           <groupId>org.honton.chas</groupId>
           <artifactId>exists-maven-plugin</artifactId>
-          <version>0.3.0</version>
+          <version>0.4.0</version>
         </plugin>
 
         <plugin>

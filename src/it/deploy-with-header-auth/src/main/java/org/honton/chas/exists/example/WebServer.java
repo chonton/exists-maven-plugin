@@ -59,18 +59,13 @@ public class WebServer extends NanoHTTPD {
 
   private Response generateResponse(IHTTPSession session) {
     String uri = session.getUri();
-    if (uri.startsWith("/auth")) {
-      String authorization = session.getHeaders().get("authorization");
-      if (authorization == null || !authorization.equals("Basic dXNlcjE6cGFzc3dvcmQxMjM=")) {
-        Response response = NanoHTTPD.newFixedLengthResponse(Status.UNAUTHORIZED, "", null);
-        response.addHeader("WWW-Authenticate", "Basic realm=\"Authentication needed\"");
-        return response;
-      }
-      uri = uri.substring("/auth".length());
-    }
     String type = getType(uri);
     switch (session.getMethod()) {
       case HEAD: {
+        String authorization = session.getHeaders().get("job-token");
+        if (authorization == null) {
+          return NanoHTTPD.newFixedLengthResponse(Status.UNAUTHORIZED, "Need Job-Token", null);
+        }
         if (!storage.containsKey(uri)) {
           return NanoHTTPD.newFixedLengthResponse(Status.NOT_FOUND, type, null);
         }
