@@ -1,17 +1,33 @@
 <?xml version="1.0"?>
 <settings>
   <servers>
+
     <server>
       <id>with-auth</id>
       <username>user1</username>
       <password>password123</password>
     </server>
+
+    <server>
+      <id>with-header-auth</id>
+      <configuration>
+        <httpHeaders>
+          <property>
+            <name>Job-Token</name>
+            <value>${env.USER}</value>
+          </property>
+        </httpHeaders>
+      </configuration>
+    </server>
+
     <server>
       <id>with-encrypted-auth</id>
       <username>user1</username>
       <password>{I7HkMmPZFuUHIbvB+DgR//2VtObX1FSAwoCdjJCiVZ4=}</password>
     </server>
+
   </servers>
+
   <profiles>
     <profile>
       <id>it-repo</id>

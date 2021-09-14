@@ -3,6 +3,10 @@ package org.honton.chas.exists;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import org.apache.maven.configuration.BeanConfigurationException;
+import org.apache.maven.configuration.BeanConfigurationRequest;
+import org.apache.maven.configuration.BeanConfigurator;
+import org.apache.maven.configuration.DefaultBeanConfigurationRequest;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -22,6 +26,7 @@ import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.context.Context;
 import org.codehaus.plexus.context.ContextException;
 import org.codehaus.plexus.personality.plexus.lifecycle.phase.Contextualizable;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.sonatype.plexus.components.sec.dispatcher.DefaultSecDispatcher;
 import org.sonatype.plexus.components.sec.dispatcher.SecDispatcher;
 import org.sonatype.plexus.components.sec.dispatcher.SecDispatcherException;
@@ -84,6 +89,9 @@ public class RemoteExistsMojo extends AbstractExistsMojo
 
   @Component(role = org.sonatype.plexus.components.sec.dispatcher.SecDispatcher.class, hint = "default")
   private SecDispatcher securityDispatcher;
+
+  @Component(role = org.apache.maven.configuration.BeanConfigurator.class, hint = "default")
+  private BeanConfigurator beanConfigurator;
 
   private PlexusContainer container;
 
@@ -148,11 +156,39 @@ public class RemoteExistsMojo extends AbstractExistsMojo
     }
 
     Wagon connectWagon(String serverId, String url) throws Exception {
-      Repository repository = new Repository(serverId, url);
-      Wagon wagon = container.lookup(Wagon.class, repository.getProtocol());
-      wagon.connect(repository, getAuthInfo(serverId), getProxyInfo());
-      return wagon;
+      Repository repo = new Repository(serverId, url);
+
+      Wagon wgn = container.lookup(Wagon.class, repo.getProtocol());
+      configureWagon(wgn);
+
+      wgn.connect(repo, getAuthInfo(serverId), getProxyInfo());
+      return wgn;
     }
+
+    /* begin
+    https://github.com/chonton/exists-maven-plugin/issues/16,
+    https://github.com/chonton/exists-maven-plugin/issues/27 */
+    void configureWagon(Wagon wagon) throws BeanConfigurationException {
+      Server server = settings.getServer(serverId);
+      if (server == null) {
+        getLog().debug("no server for id " + serverId);
+        return;
+      }
+
+      Xpp3Dom serverConfiguration = (Xpp3Dom) server.getConfiguration();
+      if (serverConfiguration == null) {
+        getLog().debug("no server configuration");
+        return;
+      }
+
+      BeanConfigurationRequest bcr = new DefaultBeanConfigurationRequest();
+      bcr.setBean(wagon);
+      bcr.setConfiguration(serverConfiguration);
+      beanConfigurator.configureBean(bcr);
+    }
+    /* end
+    https://github.com/chonton/exists-maven-plugin/issues/16,
+    https://github.com/chonton/exists-maven-plugin/issues/27 */
 
     ProxyInfo getProxyInfo() {
       Proxy proxy = settings.getActiveProxy();
