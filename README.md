@@ -3,6 +3,19 @@
 Check if a maven artifact exists. Designed around the use case of skipping deployment if the stable
 version already exists.
 
+## How This Plugin Determines if Builds are the "Same"
+There are two strategies to determine if a maven artifacts are the "same" as what the project just
+built: version comparison, and checksum comparison.  By default, this plugin uses version comparison.
+Version comparison simply checks if the group:artifact:version matches an artifact in the local or
+remote repository.  This simple check will not catch the situation where the developer has failed to
+update the version in pom.xml.
+
+Alternatively, when <cmpChecksum> is true, this plugin compares the checksum of the local or remote
+artifact with the just built artifact.  Checksum comparison requires that the maven build be
+reproducible.  Without specific configuration, maven builds are **not** reproducible.  See
+[Configuring for Reproducible Builds](https://maven.apache.org/guides/mini/guide-reproducible-builds.html)
+for details on making your build reproducible.
+
 ## Goals
 
 There are two goals: [local](https://chonton.github.io/exists-maven-plugin/0.6.0/local-mojo.html)
