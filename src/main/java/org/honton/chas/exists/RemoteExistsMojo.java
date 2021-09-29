@@ -1,6 +1,7 @@
 package org.honton.chas.exists;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -231,15 +232,19 @@ public class RemoteExistsMojo extends AbstractExistsMojo
     }
 
     String getContent(String resourceName) throws Exception {
+      byte[] bytes;
       if (wagon instanceof StreamingWagon) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ((StreamingWagon) wagon).getToStream(resourceName, baos);
-        return new String(baos.toByteArray(), StandardCharsets.ISO_8859_1);
+        bytes = baos.toByteArray();
       } else {
-        Path tmpFile = Files.createTempFile("checksum", null);
-        wagon.get(resourceName, tmpFile.toFile());
-        return new String(Files.readAllBytes(tmpFile), StandardCharsets.ISO_8859_1);
+        Path tmpFilePath = Files.createTempFile("checksum", null);
+        File tmpFile = tmpFilePath.toFile();
+        tmpFile.deleteOnExit();
+        wagon.get(resourceName, tmpFile);
+        bytes = Files.readAllBytes(tmpFilePath);
       }
+      return new String(bytes, StandardCharsets.ISO_8859_1);
     }
 
     @Override
