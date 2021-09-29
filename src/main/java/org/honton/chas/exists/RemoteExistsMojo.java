@@ -1,8 +1,11 @@
 package org.honton.chas.exists;
 
 import java.io.ByteArrayOutputStream;
-import java.io.OutputStream;
+import java.io.File;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 import org.apache.maven.configuration.BeanConfigurationException;
 import org.apache.maven.configuration.BeanConfigurationRequest;
 import org.apache.maven.configuration.BeanConfigurator;
@@ -131,9 +134,7 @@ public class RemoteExistsMojo extends AbstractExistsMojo
   protected String getRemoteChecksum(String uri) throws Exception {
     // This method is only called to read the hash, so we can safely read all the content into memory!
     try (WagonHelper wagonHelper = new WagonHelper(getRepositoryBase())) {
-      ByteArrayOutputStream baos = new ByteArrayOutputStream();
-      wagonHelper.get(getPath(uri + ".sha1"), baos);
-      return new String(baos.toByteArray(), StandardCharsets.ISO_8859_1);
+      return wagonHelper.getContent(getPath(uri + ".sha1"));
     }
   }
 
@@ -230,8 +231,20 @@ public class RemoteExistsMojo extends AbstractExistsMojo
       return wagon.resourceExists(resourceName);
     }
 
-    void get(String resourceName, OutputStream outputStream) throws Exception {
-      ((StreamingWagon) wagon).getToStream(resourceName, outputStream);
+    String getContent(String resourceName) throws Exception {
+      byte[] bytes;
+      if (wagon instanceof StreamingWagon) {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ((StreamingWagon) wagon).getToStream(resourceName, baos);
+        bytes = baos.toByteArray();
+      } else {
+        Path tmpFilePath = Files.createTempFile("checksum", null);
+        File tmpFile = tmpFilePath.toFile();
+        tmpFile.deleteOnExit();
+        wagon.get(resourceName, tmpFile);
+        bytes = Files.readAllBytes(tmpFilePath);
+      }
+      return new String(bytes, StandardCharsets.ISO_8859_1);
     }
 
     @Override
