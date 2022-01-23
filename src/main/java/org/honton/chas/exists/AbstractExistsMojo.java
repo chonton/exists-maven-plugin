@@ -12,9 +12,12 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 
 /**
- * Set a property if the artifact in a local or remote repository is same as the just built artifact.
+ * Set a property if the artifact in a local or remote repository is same as the just built
+ * artifact.
  */
 public abstract class AbstractExistsMojo extends AbstractMojo {
+
+  private static final Pattern GAV_PARSER = Pattern.compile("^([^:]*):([^:]*):([^:]*)$");
 
   @Parameter(defaultValue = "${project}", required = true, readonly = true)
   private MavenProject mavenProject;
@@ -22,32 +25,28 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
   @Parameter(defaultValue = "${session}", required = true, readonly = true)
   private MavenSession session;
 
-  /**
-   * The project Group:Artifact:Version to compare.  Defaults to the current project's GAV.
-   */
-  @Parameter(property = "exists.project", defaultValue = "${project.groupId}:${project.artifactId}:${project.version}")
+  /** The project Group:Artifact:Version to compare. Defaults to the current project's GAV. */
+  @Parameter(
+      property = "exists.project",
+      defaultValue = "${project.groupId}:${project.artifactId}:${project.version}")
   private String project;
 
-  /**
-   * The artifact of the project to compare.  Defaults to the project's principal artifact.
-   */
-  @Parameter(property = "exists.artifact", defaultValue = "${project.build.finalName}.${project.packaging}")
+  /** The artifact of the project to compare. Defaults to the project's principal artifact. */
+  @Parameter(
+      property = "exists.artifact",
+      defaultValue = "${project.build.finalName}.${project.packaging}")
   private String artifact;
 
-  /**
-   * Set whether checksum is used to compare artifacts.
-   */
+  /** Set whether checksum is used to compare artifacts. */
   @Parameter(property = "exists.cmpChecksum", defaultValue = "false")
   private boolean cmpChecksum;
 
-  /**
-   * If checksums are not used, should this plugin skip checking SNAPSHOT versions?
-   */
+  /** If checksums are not used, should this plugin skip checking SNAPSHOT versions? */
   @Parameter(property = "exists.skipIfSnapshot", defaultValue = "true")
   private boolean skipIfSnapshot;
 
   /**
-   * Set the property as a user property instead of a project property.  This will make the property
+   * Set the property as a user property instead of a project property. This will make the property
    * available in the modules of a parent POM.
    *
    * @since 0.0.3
@@ -87,19 +86,32 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
   @Parameter(property = "exists.skip", defaultValue = "false")
   private boolean skip;
 
-  private static final Pattern GAV_PARSER = Pattern.compile("^([^:]*):([^:]*):([^:]*)$");
+  /**
+   * Execute goal only if requireGoal value matches one of the maven command line goals
+   *
+   * @since 0.6.0
+   */
+  @Parameter(property = "exists.requireGoal")
+  private String requireGoal;
 
   protected abstract String getRemoteChecksum(String s) throws Exception;
 
-  protected abstract String getRepositoryBase() throws Exception;
+  protected abstract String getRepositoryBase() throws MojoExecutionException;
 
   protected abstract String getPropertyName();
 
   public void execute() throws MojoExecutionException, MojoFailureException {
-    if(skip) {
+    if (skip) {
       getLog().info("skipping exists execution");
       return;
     }
+
+    if (requireGoal != null && !session.getGoals().contains(requireGoal)) {
+      getLog()
+          .info(requireGoal + " is not present in " + session.getGoals() + ", skipping execution");
+      return;
+    }
+
     try {
       if (skipIfSnapshot && isSnapshot()) {
         getLog().debug("skipping -SNAPSHOT");
@@ -174,11 +186,11 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
   }
 
   // https://cwiki.apache.org/confluence/display/MAVEN/Remote+repository+layout
-
   private String getRepositoryUri() throws Exception {
     Matcher matcher = GAV_PARSER.matcher(project);
     if (!matcher.matches()) {
-      throw new MojoFailureException("Project property must be in format groupId:artifactId:version");
+      throw new MojoFailureException(
+          "Project property must be in format groupId:artifactId:version");
     }
 
     String groupId = matcher.group(1);
@@ -187,10 +199,14 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
 
     // ${groupId.replace('.','/')}/${artifactId}${platformId==null?'':'-'+platformId}/${version}/
     // ${artifactId}${platformId==null?'':'-'+platformId}-${version}${classifier==null?'':'-'+classifier}.${type}
-    return getRepositoryBase() + '/'
-        + groupId.replace('.', '/') + '/'
-        + artifactId + '/'
-        + version + '/'
+    return getRepositoryBase()
+        + '/'
+        + groupId.replace('.', '/')
+        + '/'
+        + artifactId
+        + '/'
+        + version
+        + '/'
         + artifact;
   }
 
@@ -198,10 +214,9 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
     CheckSum signer = new CheckSum("SHA-1");
     Artifact mavenArtifact = mavenProject.getArtifact();
     File file;
-    if("pom".equals(mavenArtifact.getType())) {
+    if ("pom".equals(mavenArtifact.getType())) {
       file = new File(mavenProject.getBasedir(), "pom.xml");
-    }
-    else {
+    } else {
       file = new File(mavenProject.getBuild().getDirectory(), artifact);
     }
     if (file.isFile()) {

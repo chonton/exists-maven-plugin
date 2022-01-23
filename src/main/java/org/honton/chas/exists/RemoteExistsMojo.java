@@ -108,7 +108,7 @@ public class RemoteExistsMojo extends AbstractExistsMojo
   }
 
   @Override
-  protected String getRepositoryBase() throws Exception {
+  protected String getRepositoryBase() throws MojoExecutionException {
     if (isSnapshot()) {
       if (snapshotRepository == null) {
         throw new MojoExecutionException("distributionManagement snapshotRepository is not set");
@@ -138,7 +138,7 @@ public class RemoteExistsMojo extends AbstractExistsMojo
     }
   }
 
-  private String getPath(String uri) throws Exception {
+  private String getPath(String uri) throws MojoExecutionException {
     String repositoryBase = getRepositoryBase();
     if (!uri.startsWith(repositoryBase + "/")) {
       throw new IllegalArgumentException("Invalid URL: " + uri);

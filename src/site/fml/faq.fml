@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <faqs id="FAQ" title="Frequently Asked Questions">
   <part id="General">
-    <faq id="question">
+    <faq id="distributionManagement">
       <question>Why am I getting a plugin exception when executing the remote goal?</question>
       <answer>
         <p>You must have the distributionManagement section configured in your pom for the remote goal to work.
@@ -9,7 +9,7 @@
         </p>
       </answer>
     </faq>
-    <faq id="question">
+    <faq id="reproducible">
       <question>Why does my build checksum not match?</question>
       <answer>
         <p>Maven built jars are generally not reproducible.

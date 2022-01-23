@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.security.GeneralSecurityException;
+import java.security.NoSuchAlgorithmException;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -42,12 +44,12 @@ public class LocalExistsMojo extends AbstractExistsMojo {
   }
 
   @Override
-  protected boolean checkArtifactExists(String uri) throws Exception {
+  protected boolean checkArtifactExists(String uri) {
     return new File(uri).isFile();
   }
 
   @Override
-  protected String getRemoteChecksum(String uri) throws Exception {
+  protected String getRemoteChecksum(String uri) throws IOException, GeneralSecurityException {
     File file = new File(uri + ".sha1");
     if (file.isFile()) {
       return new String(Files.readAllBytes(file.toPath()), StandardCharsets.ISO_8859_1);

@@ -8,7 +8,7 @@
     <version>0.6.0</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
-  <artifactId>exists-fail-it</artifactId>
+  <artifactId>exists-install-it</artifactId>
 
   <build>
     <plugins>
@@ -37,7 +37,8 @@
             </goals>
             <phase>pre-integration-test</phase>
             <configuration>
-              <failIfExists>true</failIfExists>
+              <!-- we're only running verify, this should skip goal -->
+              <requireGoal>install</requireGoal>
             </configuration>
           </execution>
 
@@ -46,10 +47,11 @@
             <goals>
               <goal>local</goal>
             </goals>
-            <configuration>
-              <failIfExists>true</failIfExists>
-            </configuration>
             <!-- default phase is verify -->
+            <configuration>
+              <!-- we're running verify, this should execute goal -->
+              <requireGoal>verify</requireGoal>
+            </configuration>
           </execution>
         </executions>
       </plugin>
