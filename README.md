@@ -10,7 +10,7 @@ Version comparison simply checks if the group:artifact:version matches an artifa
 remote repository.  This simple check will not catch the situation where the developer has failed to
 update the version in pom.xml.
 
-Alternatively, when <cmpChecksum> is true, this plugin compares the checksum of the local or remote
+Alternatively, when `<cmpChecksum>` is true, this plugin compares the checksum of the local or remote
 artifact with the just built artifact.  Checksum comparison requires that the maven build be
 reproducible.  Without specific configuration, maven builds are **not** reproducible.  See
 [Configuring for Reproducible Builds](https://maven.apache.org/guides/mini/guide-reproducible-builds.html)
@@ -84,7 +84,7 @@ server to a corporate repository with a specialized workflow that ensures variou
 license policies. The exists-maven-plugin remote goal is also used to avoid duplicate deployments.
 
 Running maven with the `install` phase will cause the exists-maven-plugin to execute the `remote`
-task.  This might fail for various reasons; including the developer laptop is not connected to the
+goal.  This might fail for various reasons; including the developer laptop is not connected to the
 internet, or the corporate repository is only available to specific build machines.
 
 We could change the binding of the `remote` goal to the `deploy` phase. However, the

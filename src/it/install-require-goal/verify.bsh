@@ -18,8 +18,8 @@ import java.nio.file.Files;
   File file = new File(basedir, "build.log" );
   BufferedReader reader = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8);
 
-  findLine(reader, "\\[INFO\\] --- exists-maven-plugin:[0-9\\.]*:local \\(before-installation\\) @ exists-install-it ---");
+  findLine(reader, "\\[INFO\\] --- exists-maven-plugin:[0-9\\.]*:local \\(before-installation\\) @ install-require-goal-it ---");
   findLine(reader, "\\[INFO\\] install is not present in \\[clean, verify\\], skipping execution");
 
-  findLine(reader, "\\[INFO\\] --- exists-maven-plugin:[0-9\\.]*:local \\(after-installation\\) @ exists-install-it ---");
+  findLine(reader, "\\[INFO\\] --- exists-maven-plugin:[0-9\\.]*:local \\(after-installation\\) @ install-require-goal-it ---");
   findLine(reader, "\\[INFO\\] setting maven.install.skip=true");
