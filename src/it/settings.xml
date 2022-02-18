@@ -1,11 +1,48 @@
 <?xml version="1.0"?>
 <settings>
-  <servers>
+  <localRepository>@basedir@/target/it-repo</localRepository>
 
+  <profiles>
+    <profile>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <id>it-repo</id>
+
+      <pluginRepositories>
+        <pluginRepository>
+          <id>local.central</id>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots>
+            <enabled>true</enabled>
+          </snapshots>
+          <url>@baseurl@/target/it-repo</url>
+        </pluginRepository>
+      </pluginRepositories>
+
+      <repositories>
+        <repository>
+          <id>local.central</id>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots>
+            <enabled>true</enabled>
+          </snapshots>
+          <url>@baseurl@/target/it-repo</url>
+        </repository>
+      </repositories>
+
+    </profile>
+  </profiles>
+
+  <servers>
     <server>
       <id>with-auth</id>
-      <username>user1</username>
       <password>password123</password>
+      <username>user1</username>
     </server>
 
     <server>
@@ -22,42 +59,9 @@
 
     <server>
       <id>with-encrypted-auth</id>
-      <username>user1</username>
       <password>{I7HkMmPZFuUHIbvB+DgR//2VtObX1FSAwoCdjJCiVZ4=}</password>
+      <username>user1</username>
     </server>
-
   </servers>
 
-  <profiles>
-    <profile>
-      <id>it-repo</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-      <repositories>
-        <repository>
-          <id>local.central</id>
-          <url>@localRepositoryUrl@</url>
-          <releases>
-            <enabled>true</enabled>
-          </releases>
-          <snapshots>
-            <enabled>true</enabled>
-          </snapshots>
-        </repository>
-      </repositories>
-      <pluginRepositories>
-        <pluginRepository>
-          <id>local.central</id>
-          <url>@localRepositoryUrl@</url>
-          <releases>
-            <enabled>true</enabled>
-          </releases>
-          <snapshots>
-            <enabled>true</enabled>
-          </snapshots>
-        </pluginRepository>
-      </pluginRepositories>
-    </profile>
-  </profiles>
 </settings>

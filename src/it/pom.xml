@@ -2,42 +2,54 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>org.honton.chas</groupId>
-  <artifactId>exists-it-parent</artifactId>
-  <version>0.6.0</version>
+  <groupId>org.honton.chas.exists.it</groupId>
+  <artifactId>parent</artifactId>
+  <version>0.0.0</version>
   <packaging>pom</packaging>
 
   <modules>
-    <module>fail</module>
-    <module>deploy</module>
-    <module>deploy-with-auth</module>
-    <module>deploy-with-encrypted-auth</module>
-    <module>deploy-with-header-auth</module>
-    <module>install</module>
-    <module>install-require-goal</module>
+    <module>local</module>
+    <module>remote</module>
   </modules>
 
   <properties>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
+    <junit.version>5.8.2</junit.version>
+
+    <maven.compiler.release>11</maven.compiler.release>
+    <maven.compiler.source>${maven.compiler.release}</maven.compiler.source>
+    <maven.compiler.target>${maven.compiler.release}</maven.compiler.target>
+
+    <plugin.version>0.7.0</plugin.version>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
   </properties>
 
-  <dependencyManagement>
-    <dependencies>
+  <dependencies>
 
-      <dependency>
-        <groupId>org.nanohttpd</groupId>
-        <artifactId>nanohttpd</artifactId>
-        <version>2.3.1</version>
-      </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
 
-    </dependencies>
-  </dependencyManagement>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+  </dependencies>
 
   <build>
+    <testResources>
+      <testResource>
+        <directory>src/test/resources</directory>
+        <filtering>true</filtering>
+      </testResource>
+    </testResources>
 
     <pluginManagement>
       <plugins>
@@ -84,23 +96,18 @@
 
         <plugin>
           <artifactId>maven-surefire-plugin</artifactId>
-          <version>2.20</version>
+          <version>3.0.0-M5</version>
         </plugin>
 
         <plugin>
           <groupId>org.honton.chas</groupId>
           <artifactId>exists-maven-plugin</artifactId>
-          <version>0.6.0</version>
-        </plugin>
-
-        <plugin>
-          <groupId>org.honton.chas</groupId>
-          <artifactId>process-exec-maven-plugin</artifactId>
-          <version>0.9.2</version>
+          <version>${plugin.version}</version>
         </plugin>
 
       </plugins>
     </pluginManagement>
+
   </build>
 
 </project>

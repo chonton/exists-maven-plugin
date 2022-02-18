@@ -5,7 +5,7 @@ import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-
+import org.apache.maven.artifact.repository.metadata.SnapshotVersion;
 import org.apache.maven.configuration.BeanConfigurationException;
 import org.apache.maven.configuration.BeanConfigurationRequest;
 import org.apache.maven.configuration.BeanConfigurator;
@@ -35,16 +35,15 @@ import org.sonatype.plexus.components.sec.dispatcher.SecDispatcherException;
 
 /**
  * Set a property if the artifact in the remote repository is same as the just built artifact. The
- * remote repository is usually defined in the pom's distributionManagement section.  Using the
+ * remote repository is usually defined in the pom's distributionManagement section. Using the
  * defaults, executing this plugin will prevent the install plugin from reinstalling identical
- * artifacts to the remote repository.  This situation will often occur with a recurring schedule
+ * artifacts to the remote repository. This situation will often occur with a recurring schedule
  * build job.
  *
  * @since 0.0.2
  */
-@Mojo(name = "remote", defaultPhase = LifecyclePhase.VERIFY)
-public class RemoteExistsMojo extends AbstractExistsMojo
-    implements Contextualizable {
+@Mojo(name = "remote", defaultPhase = LifecyclePhase.VERIFY, threadSafe = true)
+public class RemoteExistsMojo extends AbstractExistsMojo implements Contextualizable {
 
   /**
    * The property to set if the artifact exists in the deploy repository. The default property of
@@ -57,7 +56,9 @@ public class RemoteExistsMojo extends AbstractExistsMojo
    * The URL of the remote repository to check for distribution artifacts. The default value is the
    * repository defined in the pom's distributionManagement / repository section.
    */
-  @Parameter(property = "exists.repository", defaultValue = "${project.distributionManagement.repository.url}")
+  @Parameter(
+      property = "exists.repository",
+      defaultValue = "${project.distributionManagement.repository.url}")
   private String repository;
 
   /**
@@ -65,7 +66,9 @@ public class RemoteExistsMojo extends AbstractExistsMojo
    * is the snapshot repository defined in the pom's distributionManagement / snapshotRepository
    * section.
    */
-  @Parameter(property = "exists.snapshotRepository", defaultValue = "${project.distributionManagement.snapshotRepository.url}")
+  @Parameter(
+      property = "exists.snapshotRepository",
+      defaultValue = "${project.distributionManagement.snapshotRepository.url}")
   private String snapshotRepository;
 
   /**
@@ -74,7 +77,9 @@ public class RemoteExistsMojo extends AbstractExistsMojo
    *
    * @since 0.0.3
    */
-  @Parameter(property = "exists.serverId", defaultValue = "${project.distributionManagement.repository.id}")
+  @Parameter(
+      property = "exists.serverId",
+      defaultValue = "${project.distributionManagement.repository.id}")
   private String serverId;
 
   /**
@@ -83,13 +88,17 @@ public class RemoteExistsMojo extends AbstractExistsMojo
    *
    * @since 0.0.3
    */
-  @Parameter(property = "exists.snapshotServerId", defaultValue = "${project.distributionManagement.snapshotRepository.id}")
+  @Parameter(
+      property = "exists.snapshotServerId",
+      defaultValue = "${project.distributionManagement.snapshotRepository.id}")
   private String snapshotServerId;
 
   @Parameter(defaultValue = "${settings}", required = true, readonly = true)
   private Settings settings;
 
-  @Component(role = org.sonatype.plexus.components.sec.dispatcher.SecDispatcher.class, hint = "default")
+  @Component(
+      role = org.sonatype.plexus.components.sec.dispatcher.SecDispatcher.class,
+      hint = "default")
   private SecDispatcher securityDispatcher;
 
   @Component(role = org.apache.maven.configuration.BeanConfigurator.class, hint = "default")
@@ -108,7 +117,16 @@ public class RemoteExistsMojo extends AbstractExistsMojo
   }
 
   @Override
-  protected String getRepositoryBase() throws MojoExecutionException {
+  protected String getVersionedPath(SnapshotVersion version) {
+    return gav.snapshotLocation(version.getVersion());
+  }
+
+  @Override
+  protected String getMavenMetadata(String path) throws Exception {
+    return getRemoteFile(path + "maven-metadata.xml");
+  }
+
+  private String getRepositoryBase() throws MojoExecutionException {
     if (isSnapshot()) {
       if (snapshotRepository == null) {
         throw new MojoExecutionException("distributionManagement snapshotRepository is not set");
@@ -123,27 +141,27 @@ public class RemoteExistsMojo extends AbstractExistsMojo
   }
 
   @Override
-  protected boolean checkArtifactExists(String uri) throws Exception {
-    String path = getPath(uri);
-    try (WagonHelper wagonHelper = new WagonHelper(getRepositoryBase())) {
+  protected boolean checkArtifactExists(String path) throws Exception {
+    String repositoryBase = getRepositoryBase();
+    getLog().info("Checking for artifact at " + repositoryBase + path);
+    try (WagonHelper wagonHelper = new WagonHelper(repositoryBase)) {
       return wagonHelper.resourceExists(path);
     }
   }
 
   @Override
-  protected String getRemoteChecksum(String uri) throws Exception {
-    // This method is only called to read the hash, so we can safely read all the content into memory!
-    try (WagonHelper wagonHelper = new WagonHelper(getRepositoryBase())) {
-      return wagonHelper.getContent(getPath(uri + ".sha1"));
-    }
+  protected String getArtifactChecksum(String path) throws Exception {
+    return getRemoteFile(path + ".sha1");
   }
 
-  private String getPath(String uri) throws MojoExecutionException {
+  private String getRemoteFile(String path) throws Exception {
+    // This method is only called to small files, so we can safely read all the content into
+    // memory!
     String repositoryBase = getRepositoryBase();
-    if (!uri.startsWith(repositoryBase + "/")) {
-      throw new IllegalArgumentException("Invalid URL: " + uri);
+    getLog().debug("Fetching " + repositoryBase + path);
+    try (WagonHelper wagonHelper = new WagonHelper(repositoryBase)) {
+      return wagonHelper.getContent(path);
     }
-    return uri.substring(repositoryBase.length() + 1);
   }
 
   private class WagonHelper implements AutoCloseable {

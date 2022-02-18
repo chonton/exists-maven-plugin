@@ -1,18 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.honton.chas</groupId>
   <artifactId>exists-maven-plugin</artifactId>
-  <version>0.6.0</version>
+
+  <version>0.7.0</version>
+
   <packaging>maven-plugin</packaging>
 
   <name>Artifact Exists Maven Plugin</name>
-
   <description>Check if a http resource exists, particularly artifacts in a remote repository</description>
+
   <url>https://github.com/chonton/exists-maven-plugin</url>
   <inceptionYear>2016</inceptionYear>
-
   <licenses>
     <license>
       <name>Apache License, Version 2.0</name>
@@ -20,7 +22,6 @@
       <distribution>repo</distribution>
     </license>
   </licenses>
-
   <developers>
     <developer>
       <name>chas honton</name>
@@ -63,63 +64,106 @@
   </distributionManagement>
 
   <properties>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
+    <junit.version>5.8.2</junit.version>
+
+    <maven.compiler.release>1.8</maven.compiler.release>
+    <maven.compiler.source>${maven.compiler.release}</maven.compiler.source>
+    <maven.compiler.target>${maven.compiler.release}</maven.compiler.target>
 
     <!-- use org.sonatype.plugins:nexus-staging-maven-plugin instead of org.apache.maven.plugins:maven-deploy-plugin -->
     <maven.deploy.skip>true</maven.deploy.skip>
     <!-- use com.github.github:site-maven-plugin instead of org.apache.maven.plugins:maven-site-plugin -->
     <maven.site.deploy.skip>true</maven.site.deploy.skip>
+    <maven.version>3.8.4</maven.version>
+
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
+
+  <!-- for convergence -->
+  <dependencyManagement>
+    <dependencies>
+
+      <dependency>
+        <groupId>org.codehaus.plexus</groupId>
+        <artifactId>plexus-classworlds</artifactId>
+        <version>2.6.0</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.codehaus.plexus</groupId>
+        <artifactId>plexus-component-annotations</artifactId>
+        <version>2.1.0</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.codehaus.plexus</groupId>
+        <artifactId>plexus-utils</artifactId>
+        <version>3.4.1</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>1.7.32</version>
+      </dependency>
+
+    </dependencies>
+  </dependencyManagement>
 
   <dependencies>
 
     <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-      <version>31.0.1-android</version>
-    </dependency>
-
-    <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-artifact</artifactId>
-      <version>3.8.1</version>
+      <version>${maven.version}</version>
       <scope>provided</scope>
     </dependency>
 
     <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-core</artifactId>
-      <version>3.8.1</version>
+      <version>${maven.version}</version>
       <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.codehaus.plexus</groupId>
+          <artifactId>plexus-sec-dispatcher</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-model</artifactId>
-      <version>3.8.1</version>
+      <version>${maven.version}</version>
       <scope>provided</scope>
     </dependency>
 
     <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-plugin-api</artifactId>
-      <version>3.8.1</version>
+      <version>${maven.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-repository-metadata</artifactId>
+      <version>${maven.version}</version>
       <scope>provided</scope>
     </dependency>
 
     <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-settings</artifactId>
-      <version>3.8.1</version>
+      <version>${maven.version}</version>
       <scope>provided</scope>
     </dependency>
 
     <dependency>
       <groupId>org.apache.maven.plugin-tools</groupId>
       <artifactId>maven-plugin-annotations</artifactId>
-      <version>3.6.2</version>
+      <version>3.6.4</version>
       <scope>provided</scope>
     </dependency>
 
@@ -138,10 +182,25 @@
     </dependency>
 
     <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
       <groupId>org.sonatype.plexus</groupId>
       <artifactId>plexus-sec-dispatcher</artifactId>
       <version>1.4</version>
     </dependency>
+
   </dependencies>
 
   <build>
@@ -153,12 +212,12 @@
           <artifactId>site-maven-plugin</artifactId>
           <version>0.12</version>
           <configuration>
+            <merge>true</merge>
             <message>Site documentation</message>
             <path>${project.version}</path>
-            <merge>true</merge>
-            <server>github</server>
             <repositoryName>exists-maven-plugin</repositoryName>
             <repositoryOwner>chonton</repositoryOwner>
+            <server>github</server>
           </configuration>
         </plugin>
 
@@ -188,24 +247,6 @@
         </plugin>
 
         <plugin>
-          <artifactId>maven-invoker-plugin</artifactId>
-          <version>3.2.0</version>
-          <configuration>
-            <preBuildHookScript>clean</preBuildHookScript>
-            <postBuildHookScript>verify</postBuildHookScript>
-            <addTestClassPath>true</addTestClassPath>
-            <settingsFile>src/it/settings.xml</settingsFile>
-            <localRepositoryPath>${project.build.directory}/it-repo</localRepositoryPath>
-            <filterProperties>
-              <webserver.port>1080</webserver.port>
-            </filterProperties>
-            <properties>
-              <settings.security>${project.basedir}/src/it/settings-security.xml</settings.security>
-            </properties>
-          </configuration>
-        </plugin>
-
-        <plugin>
           <artifactId>maven-jar-plugin</artifactId>
           <version>3.1.2</version>
         </plugin>
@@ -219,10 +260,10 @@
           <artifactId>maven-plugin-plugin</artifactId>
           <version>3.6.0</version>
           <configuration>
-            <goalPrefix>exists</goalPrefix>
             <extractors>
               <extractor>java-annotations</extractor>
             </extractors>
+            <goalPrefix>exists</goalPrefix>
           </configuration>
         </plugin>
 
@@ -248,7 +289,7 @@
 
         <plugin>
           <artifactId>maven-surefire-plugin</artifactId>
-          <version>2.20</version>
+          <version>3.0.0-M5</version>
         </plugin>
 
         <plugin>
@@ -304,6 +345,8 @@
                 <requireMavenVersion>
                   <version>[3.5,)</version>
                 </requireMavenVersion>
+                <dependencyConvergence></dependencyConvergence>
+                <reactorModuleConvergence></reactorModuleConvergence>
               </rules>
             </configuration>
           </execution>
@@ -325,13 +368,40 @@
 
       <plugin>
         <artifactId>maven-invoker-plugin</artifactId>
+        <version>3.2.2</version>
+        <configuration>
+          <addTestClassPath>true</addTestClassPath>
+          <filterProperties>
+            <localRepository>${project.build.directory}/it-repo</localRepository>
+            <webserver.port>${deploy.webserver.port}</webserver.port>
+          </filterProperties>
+          <goals>
+            <goal>verify</goal>
+          </goals>
+          <localRepositoryPath>${project.build.directory}/it-repo</localRepositoryPath>
+          <pomIncludes>
+            <pomInclude>local/*/pom.xml</pomInclude>
+            <pomInclude>remote/*/pom.xml</pomInclude>
+          </pomIncludes>
+          <postBuildHookScript>verify</postBuildHookScript>
+          <properties>
+            <settings.security>${project.basedir}/src/it/settings-security.xml</settings.security>
+          </properties>
+          <settingsFile>src/it/settings.xml</settingsFile>
+        </configuration>
         <executions>
           <execution>
-            <id>integration-test</id>
+            <id>install</id>
             <goals>
               <goal>install</goal>
-              <goal>verify</goal>
+            </goals>
+            <phase>package</phase>
+          </execution>
+          <execution>
+            <id>integration-tests</id>
+            <goals>
               <goal>run</goal>
+              <goal>verify</goal>
             </goals>
           </execution>
         </executions>
@@ -349,6 +419,34 @@
             <goals>
               <goal>helpmojo</goal>
             </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>default-test</id>
+            <goals>
+              <goal>test</goal>
+            </goals>
+            <configuration>
+              <skip>true</skip>
+            </configuration>
+          </execution>
+          <execution>
+            <id>sign-artifacts</id>
+            <goals>
+              <goal>test</goal>
+            </goals>
+            <phase>pre-integration-test</phase>
+            <configuration>
+              <systemPropertyVariables>
+                <localRepositoryPath>${project.build.directory}/it-repo</localRepositoryPath>
+                <projectGAV>${project.groupId}:${project.artifactId}:${project.version}</projectGAV>
+              </systemPropertyVariables>
+            </configuration>
           </execution>
         </executions>
       </plugin>
@@ -377,17 +475,10 @@
         <version>1.6.8</version>
         <extensions>true</extensions>
         <configuration>
-          <serverId>ossrh</serverId>
-          <nexusUrl>https://oss.sonatype.org/</nexusUrl>
           <autoReleaseAfterClose>true</autoReleaseAfterClose>
+          <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+          <serverId>ossrh</serverId>
         </configuration>
-        <dependencies>
-          <dependency>
-            <groupId>com.thoughtworks.xstream</groupId>
-            <artifactId>xstream</artifactId>
-            <version>1.4.15</version>
-          </dependency>
-        </dependencies>
       </plugin>
 
     </plugins>

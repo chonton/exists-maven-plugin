@@ -1,9 +1,14 @@
 package org.honton.chas.exists;
 
-import java.io.File;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.io.StringReader;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.repository.metadata.Metadata;
+import org.apache.maven.artifact.repository.metadata.SnapshotVersion;
+import org.apache.maven.artifact.repository.metadata.Versioning;
+import org.apache.maven.artifact.repository.metadata.io.xpp3.MetadataXpp3Reader;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -17,21 +22,21 @@ import org.apache.maven.project.MavenProject;
  */
 public abstract class AbstractExistsMojo extends AbstractMojo {
 
-  private static final Pattern GAV_PARSER = Pattern.compile("^([^:]*):([^:]*):([^:]*)$");
-
   @Parameter(defaultValue = "${project}", required = true, readonly = true)
   private MavenProject mavenProject;
 
   @Parameter(defaultValue = "${session}", required = true, readonly = true)
   private MavenSession session;
 
-  /** The project Group:Artifact:Version to compare. Defaults to the current project's GAV. */
+  /**
+   * The project Group:Artifact:[:Type]:Version to compare. Defaults to the current project's GATV.
+   */
   @Parameter(
       property = "exists.project",
-      defaultValue = "${project.groupId}:${project.artifactId}:${project.version}")
+      defaultValue = "${project.groupId}:${project.artifactId}:${project.packaging}:${project.version}")
   private String project;
 
-  /** The artifact of the project to compare. Defaults to the project's principal artifact. */
+  /** The build artifact of the project to compare. Defaults to the project's principal artifact. */
   @Parameter(
       property = "exists.artifact",
       defaultValue = "${project.build.finalName}.${project.packaging}")
@@ -94,9 +99,22 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
   @Parameter(property = "exists.requireGoal")
   private String requireGoal;
 
-  protected abstract String getRemoteChecksum(String s) throws Exception;
+  /**
+   * The property to set with the timestamp of the last snapshot artifact available in the
+   * repository.
+   *
+   * @since 0.7.0
+   */
+  @Parameter(property = "exists.lastSnapshotTime")
+  private String lastSnapshotTime;
 
-  protected abstract String getRepositoryBase() throws MojoExecutionException;
+  protected GAV gav;
+
+  static Path getPath(String first, String... more) {
+    return FileSystems.getDefault().getPath(first, more);
+  }
+
+  protected abstract String getArtifactChecksum(String s) throws Exception;
 
   protected abstract String getPropertyName();
 
@@ -113,28 +131,35 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
     }
 
     try {
-      if (skipIfSnapshot && isSnapshot()) {
+      gav = new GAV(project, mavenProject.getPackaging());
+      boolean snapshot = isSnapshot();
+      if (skipIfSnapshot && snapshot) {
         getLog().debug("skipping -SNAPSHOT");
         return;
       }
 
-      String uri = getRepositoryUri();
-      if (!artifactExists(uri)) {
-        return;
-      }
-
-      if (cmpChecksum && !checksumMatches(uri)) {
-        return;
-      }
-
-      String propertyName = getPropertyName();
-      if (userProperty) {
-        getLog().info("setting user property " + propertyName + "=true");
-        session.getUserProperties().setProperty(propertyName, "true");
+      String path;
+      if (snapshot) {
+        path = snapshotPath();
+        if (path == null) {
+          checkFailConditions(false);
+          return;
+        }
       } else {
-        getLog().info("setting " + propertyName + "=true");
-        mavenProject.getProperties().setProperty(propertyName, "true");
+        path = gav.artifactLocation();
       }
+
+      boolean exists = checkArtifactExists(path);
+      checkFailConditions(exists);
+      if (!exists) {
+        return;
+      }
+
+      if (cmpChecksum && !checksumMatches(path)) {
+        return;
+      }
+
+      setProperty(getPropertyName(), "true");
     } catch (MojoExecutionException | MojoFailureException e) {
       throw e;
     } catch (Exception e) {
@@ -142,34 +167,72 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
     }
   }
 
-  private boolean artifactExists(String uri) throws Exception {
-    getLog().debug("Checking for artifact at " + uri);
-    boolean exists = checkArtifactExists(uri);
+  private void setProperty(String propertyName, String value) {
+    if (userProperty) {
+      getLog().info("setting user property " + propertyName + '=' + value);
+      session.getUserProperties().setProperty(propertyName, value);
+    } else {
+      getLog().info("setting " + propertyName + '=' + value);
+      mavenProject.getProperties().setProperty(propertyName, value);
+    }
+  }
+
+  void setLastSnapshotTime(String updated) {
+    if (lastSnapshotTime != null) {
+      setProperty(lastSnapshotTime, updated);
+    }
+  }
+
+  private boolean checkFailConditions(boolean exists) throws MojoFailureException {
     if (exists) {
       if (failIfExists) {
         throw new MojoFailureException(
-            "Artifact already exists in repository: " + project + "/" + artifact);
+            "Artifact already exists in repository: " + project);
       }
     } else {
       getLog().info(project + " does not exist");
       if (failIfNotExists) {
         throw new MojoFailureException(
-            "Artifact does not exist in repository: " + project + "/" + artifact);
+            "Artifact does not exist in repository: " + project);
       }
     }
     return exists;
   }
 
   protected boolean isSnapshot() {
-    return project.endsWith("-SNAPSHOT");
+    return gav.version.endsWith("-SNAPSHOT");
   }
 
-  protected abstract boolean checkArtifactExists(String uri) throws Exception;
+  private String snapshotPath() {
+    try {
+      String directory = gav.artifactDirectory();
 
-  private boolean checksumMatches(String uri) throws Exception {
-    getLog().debug("checking for resource " + uri);
-    String prior = getPriorChecksum(uri);
-    String build = getArtifactChecksum();
+      Metadata metadata =
+          new MetadataXpp3Reader().read(new StringReader(getMavenMetadata(directory)));
+      Versioning versioning = metadata.getVersioning();
+
+      for (SnapshotVersion version : versioning.getSnapshotVersions()) {
+        if (gav.type.equals(version.getExtension())) {
+          getLog().debug("version=" + version.getVersion());
+          setLastSnapshotTime(version.getUpdated());
+          return getVersionedPath(version);
+        }
+      }
+    } catch (Exception e) {
+      getLog().debug("Could not fetch/read metadata, assuming no snapshot " + e.getMessage());
+    }
+    return null;
+  }
+
+  protected abstract String getVersionedPath(SnapshotVersion version);
+
+  protected abstract String getMavenMetadata(String path) throws Exception;
+
+  protected abstract boolean checkArtifactExists(String path) throws Exception;
+
+  private boolean checksumMatches(String path) throws Exception {
+    String prior = getArtifactChecksum(path);
+    String build = getBuildChecksum();
     boolean matches = build.equalsIgnoreCase(prior);
     if (!matches) {
       getLog().info(project + " checksum does not match");
@@ -181,49 +244,21 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
     return matches;
   }
 
-  private String getPriorChecksum(String uri) throws Exception {
-    return getRemoteChecksum(uri);
-  }
-
-  // https://cwiki.apache.org/confluence/display/MAVEN/Remote+repository+layout
-  private String getRepositoryUri() throws Exception {
-    Matcher matcher = GAV_PARSER.matcher(project);
-    if (!matcher.matches()) {
-      throw new MojoFailureException(
-          "Project property must be in format groupId:artifactId:version");
-    }
-
-    String groupId = matcher.group(1);
-    String artifactId = matcher.group(2);
-    String version = matcher.group(3);
-
-    // ${groupId.replace('.','/')}/${artifactId}${platformId==null?'':'-'+platformId}/${version}/
-    // ${artifactId}${platformId==null?'':'-'+platformId}-${version}${classifier==null?'':'-'+classifier}.${type}
-    return getRepositoryBase()
-        + '/'
-        + groupId.replace('.', '/')
-        + '/'
-        + artifactId
-        + '/'
-        + version
-        + '/'
-        + artifact;
-  }
-
-  private String getArtifactChecksum() throws Exception {
-    CheckSum signer = new CheckSum("SHA-1");
+  private String getBuildChecksum() throws Exception {
     Artifact mavenArtifact = mavenProject.getArtifact();
-    File file;
+    Path path;
     if ("pom".equals(mavenArtifact.getType())) {
-      file = new File(mavenProject.getBasedir(), "pom.xml");
+      path = getPath(mavenProject.getBasedir().toString(), "pom.xml");
     } else {
-      file = new File(mavenProject.getBuild().getDirectory(), artifact);
+      path = getPath(mavenProject.getBuild().getDirectory(), artifact);
     }
-    if (file.isFile()) {
-      getLog().debug("Calculating checksum for " + file);
-      return signer.getChecksum(file);
+    if (Files.exists(path)) {
+      getLog().debug("Calculating checksum for " + path);
+      CheckSum signer = new CheckSum();
+      return signer.getChecksum(path);
     } else {
-      throw new MojoFailureException("The project artifact " + file + " has not been created.");
+      throw new MojoFailureException("The project artifact " + path + " has not been created.");
     }
   }
+
 }

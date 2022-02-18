@@ -1,47 +1,58 @@
 package org.honton.chas.exists;
 
-import com.google.common.io.BaseEncoding;
-import com.google.common.io.Closeables;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
+import java.nio.channels.ByteChannel;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import org.codehaus.plexus.util.IOUtil;
+import java.util.Collections;
+import java.util.Set;
 
-/**
- * Calculate digest for a file.
- */
+/** Calculate digest for a file. */
 public class CheckSum {
   private static final int BUFFER_SIZE = 0x10000;
+  private static final char[] HEX_DIGITS = {
+    '0', '1', '2', '3', '4', '5',
+    '6', '7', '8', '9', 'a', 'b',
+    'c', 'd', 'e', 'f'
+  };
+  private final MessageDigest digest;
 
-  private MessageDigest digest;
-
-  public CheckSum(String digestAlgorithm) throws NoSuchAlgorithmException {
-    digest = MessageDigest.getInstance(digestAlgorithm);
+  public CheckSum() throws NoSuchAlgorithmException {
+    digest = MessageDigest.getInstance("SHA-1");
   }
 
-  public byte[] getChecksumBytes(File file) throws IOException {
-    FileInputStream fis = new FileInputStream(file);
-    try {
+  private static String hexEncode(byte[] bytes) {
+    int cOffset = bytes.length * 2;
+    char[] chars = new char[cOffset];
+    for (int bOffset = bytes.length; --bOffset >= 0; ) {
+      int c = bytes[bOffset] & 0xff;
+      chars[--cOffset] = HEX_DIGITS[c & 0xf];
+      chars[--cOffset] = HEX_DIGITS[c >> 4];
+    }
+    return new String(chars);
+  }
+
+  public byte[] getChecksumBytes(Path path) throws IOException {
+    try (ByteChannel byteChannel = Files.newByteChannel(path, StandardOpenOption.READ)) {
       digest.reset();
-      readStream(fis);
+      readStream(byteChannel);
       return digest.digest();
-    } finally {
-      Closeables.closeQuietly(fis);
     }
   }
-  public String getChecksum(File file) throws IOException {
-    return BaseEncoding.base16().encode(getChecksumBytes(file));
+
+  public String getChecksum(Path path) throws IOException {
+    return hexEncode(getChecksumBytes(path));
   }
 
-  private void readStream(FileInputStream fis) throws IOException {
-    FileChannel fileChannel = fis.getChannel();
+  private void readStream(ByteChannel byteChannel) throws IOException {
     ByteBuffer byteBuffer = ByteBuffer.allocate(BUFFER_SIZE);
     for (; ; ) {
-      int bytes = fileChannel.read(byteBuffer);
+      int bytes = byteChannel.read(byteBuffer);
       if (bytes < 0) {
         break;
       }
@@ -49,5 +60,17 @@ public class CheckSum {
       digest.update(byteBuffer);
       byteBuffer.clear();
     }
+  }
+
+  public void writeChecksum(Path path) throws IOException {
+    Set<String> lines = Collections.singleton(getChecksum(path));
+    Path sibling = path.resolveSibling(path.getFileName() + ".sha1");
+    Files.write(
+        sibling,
+        lines,
+        StandardCharsets.US_ASCII,
+        StandardOpenOption.CREATE,
+        StandardOpenOption.WRITE,
+        StandardOpenOption.TRUNCATE_EXISTING);
   }
 }

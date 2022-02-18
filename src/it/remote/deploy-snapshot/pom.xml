@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.honton.chas.exists.it</groupId>
+    <artifactId>remote</artifactId>
+    <version>0.0.0</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>exists-deploy-snapshot-it</artifactId>
+  <version>0.0.0-SNAPSHOT</version>
+
+  <properties>
+    <exists.lastSnapshotTime>artifactTimestamp</exists.lastSnapshotTime>
+    <exists.skipIfSnapshot>false</exists.skipIfSnapshot>
+  </properties>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.honton.chas</groupId>
+          <artifactId>exists-maven-plugin</artifactId>
+          <configuration>
+            <repository>http://localhost:${deploy.webserver.port}/auth/repo</repository>
+            <serverId>with-auth</serverId>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+
+</project>

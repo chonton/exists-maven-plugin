@@ -1,0 +1,3 @@
+import org.honton.chas.exists.Verify;
+
+new Verify(basedir, "local").checkSnapshotTime();
