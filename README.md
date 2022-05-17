@@ -111,7 +111,7 @@ configuration:
 ```xml
 
 <configuration>
-  <!-- run only if deploy goal is specified in maven command ling -->
+  <!-- run only if deploy goal is specified in maven command line -->
   <requireGoal>deploy</requireGoal>
 </configuration>
 ```
