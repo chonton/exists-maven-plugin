@@ -127,17 +127,23 @@ public class RemoteExistsMojo extends AbstractExistsMojo implements Contextualiz
   }
 
   private String getRepositoryBase() throws MojoExecutionException {
+    String repositoryBase;
     if (isSnapshot()) {
       if (snapshotRepository == null) {
         throw new MojoExecutionException("distributionManagement snapshotRepository is not set");
       }
-      return snapshotRepository;
+      repositoryBase = snapshotRepository;
     } else {
       if (repository == null) {
         throw new MojoExecutionException("distributionManagement repository is not set");
       }
-      return repository;
+      repositoryBase = repository;
     }
+
+    int lastIdx = repositoryBase.length() - 1;
+    return repositoryBase.charAt(lastIdx) == '/'
+        ? repositoryBase.substring(0, lastIdx)
+        : repositoryBase;
   }
 
   @Override

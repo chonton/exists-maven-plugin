@@ -183,20 +183,20 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
     }
   }
 
-  private boolean checkFailConditions(boolean exists) throws MojoFailureException {
+  private void checkFailConditions(boolean exists) throws MojoFailureException {
     if (exists) {
       if (failIfExists) {
         throw new MojoFailureException(
             "Artifact already exists in repository: " + project);
       }
+      getLog().info(project + " exists");
     } else {
-      getLog().info(project + " does not exist");
       if (failIfNotExists) {
         throw new MojoFailureException(
             "Artifact does not exist in repository: " + project);
       }
+      getLog().info(project + " does not exist");
     }
-    return exists;
   }
 
   protected boolean isSnapshot() {

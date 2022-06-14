@@ -18,12 +18,12 @@ for details on making your build reproducible.
 
 ## Goals
 
-There are two goals: [local](https://chonton.github.io/exists-maven-plugin/0.7.0/local-mojo.html)
+There are two goals: [local](https://chonton.github.io/exists-maven-plugin/local-mojo.html)
 checks if the just built artifact is already in the local repository;
-and [remote](https://chonton.github.io/exists-maven-plugin/0.7.0/remote-mojo.html) checks if the
+and [remote](https://chonton.github.io/exists-maven-plugin/remote-mojo.html) checks if the
 just built artifact is already in the remote repository.
 
-Mojo details at [plugin info](https://chonton.github.io/exists-maven-plugin/0.7.0/plugin-info.html)
+Mojo details at [plugin info](https://chonton.github.io/exists-maven-plugin/plugin-info.html)
 
 ## Parameters
 
@@ -57,7 +57,7 @@ In the following table `p:` indicates the default constituent properties are pre
 ## Requirements
 
 - Maven 3.5 or later
-- Java 1.8 or later
+- Java 11 or later
 
 ## Typical Use
 
@@ -69,7 +69,7 @@ In the following table `p:` indicates the default constituent properties are pre
     <plugin>
       <groupId>org.honton.chas</groupId>
       <artifactId>exists-maven-plugin</artifactId>
-      <version>0.7.0</version>
+      <version>0.8.0-SNAPSHOT</version>
       <executions>
         <execution>
           <goals>

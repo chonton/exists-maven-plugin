@@ -6,7 +6,7 @@
   <groupId>org.honton.chas</groupId>
   <artifactId>exists-maven-plugin</artifactId>
 
-  <version>0.7.0</version>
+  <version>0.8.0-SNAPSHOT</version>
 
   <packaging>maven-plugin</packaging>
 
@@ -39,16 +39,16 @@
   </prerequisites>
 
   <scm>
-    <connection>scm:git:git://github.com/chonton/exists-maven-plugin</connection>
-    <developerConnection>scm:git:git@github.com:chonton/exists-maven-plugin</developerConnection>
-    <url>https://github.com/chonton/exists-maven-plugin</url>
+    <connection>scm:git:git://github.com/chonton/${project.artifactId}</connection>
+    <developerConnection>scm:git:git@github.com:chonton/${project.artifactId}</developerConnection>
+    <url>https://github.com/chonton/${project.artifactId}</url>
   </scm>
 
   <distributionManagement>
 
     <repository>
       <id>ossrh</id>
-      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
     </repository>
 
     <snapshotRepository>
@@ -58,7 +58,7 @@
 
     <site>
       <id>github</id>
-      <url>https://chonton.github.com/exists-maven-plugin/${project.version}</url>
+      <url>https://chonton.github.com/${project.artifactId}</url>
     </site>
 
   </distributionManagement>
@@ -66,15 +66,13 @@
   <properties>
     <junit.version>5.8.2</junit.version>
 
-    <maven.compiler.release>1.8</maven.compiler.release>
+    <maven.compiler.release>11</maven.compiler.release>
     <maven.compiler.source>${maven.compiler.release}</maven.compiler.source>
     <maven.compiler.target>${maven.compiler.release}</maven.compiler.target>
 
     <!-- use org.sonatype.plugins:nexus-staging-maven-plugin instead of org.apache.maven.plugins:maven-deploy-plugin -->
     <maven.deploy.skip>true</maven.deploy.skip>
-    <!-- use com.github.github:site-maven-plugin instead of org.apache.maven.plugins:maven-site-plugin -->
-    <maven.site.deploy.skip>true</maven.site.deploy.skip>
-    <maven.version>3.8.4</maven.version>
+     <maven.version>3.8.4</maven.version>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
@@ -208,20 +206,6 @@
       <plugins>
 
         <plugin>
-          <groupId>com.github.github</groupId>
-          <artifactId>site-maven-plugin</artifactId>
-          <version>0.12</version>
-          <configuration>
-            <merge>true</merge>
-            <message>Site documentation</message>
-            <path>${project.version}</path>
-            <repositoryName>exists-maven-plugin</repositoryName>
-            <repositoryOwner>chonton</repositoryOwner>
-            <server>github</server>
-          </configuration>
-        </plugin>
-
-        <plugin>
           <artifactId>maven-clean-plugin</artifactId>
           <version>3.0.0</version>
         </plugin>
@@ -232,18 +216,33 @@
         </plugin>
 
         <plugin>
+          <artifactId>maven-dependency-plugin</artifactId>
+          <version>3.1.2</version>
+        </plugin>
+
+        <plugin>
           <artifactId>maven-deploy-plugin</artifactId>
           <version>2.8.2</version>
         </plugin>
 
         <plugin>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>3.0.0-M2</version>
+        </plugin>
+
+        <plugin>
           <artifactId>maven-gpg-plugin</artifactId>
-          <version>1.6</version>
+          <version>3.0.1</version>
         </plugin>
 
         <plugin>
           <artifactId>maven-install-plugin</artifactId>
           <version>3.0.0-M1</version>
+        </plugin>
+
+        <plugin>
+        <artifactId>maven-invoker-plugin</artifactId>
+        <version>3.2.2</version>
         </plugin>
 
         <plugin>
@@ -253,28 +252,27 @@
 
         <plugin>
           <artifactId>maven-javadoc-plugin</artifactId>
-          <version>3.1.0</version>
+          <version>3.4.0</version>
         </plugin>
 
         <plugin>
           <artifactId>maven-plugin-plugin</artifactId>
-          <version>3.6.0</version>
-          <configuration>
-            <extractors>
-              <extractor>java-annotations</extractor>
-            </extractors>
-            <goalPrefix>exists</goalPrefix>
-          </configuration>
+          <version>3.6.4</version>
         </plugin>
 
         <plugin>
           <artifactId>maven-project-info-reports-plugin</artifactId>
-          <version>3.0.0</version>
+          <version>3.3.0</version>
         </plugin>
 
         <plugin>
           <artifactId>maven-resources-plugin</artifactId>
           <version>3.0.2</version>
+        </plugin>
+
+        <plugin>
+        <artifactId>maven-scm-publish-plugin</artifactId>
+        <version>3.1.0</version>
         </plugin>
 
         <plugin>
@@ -284,7 +282,7 @@
 
         <plugin>
           <artifactId>maven-source-plugin</artifactId>
-          <version>3.1.0</version>
+          <version>3.2.1</version>
         </plugin>
 
         <plugin>
@@ -298,6 +296,12 @@
           <version>3.0.0</version>
         </plugin>
 
+        <plugin>
+          <groupId>org.sonatype.plugins</groupId>
+          <artifactId>nexus-staging-maven-plugin</artifactId>
+          <version>1.6.13</version>
+        </plugin>
+
       </plugins>
 
     </pluginManagement>
@@ -306,7 +310,6 @@
 
       <plugin>
         <artifactId>maven-dependency-plugin</artifactId>
-        <version>3.1.2</version>
         <configuration>
           <failOnWarning>true</failOnWarning>
           <ignoreNonCompile>true</ignoreNonCompile>
@@ -330,7 +333,6 @@
 
       <plugin>
         <artifactId>maven-enforcer-plugin</artifactId>
-        <version>3.0.0-M2</version>
         <executions>
           <execution>
             <id>enforce-maven</id>
@@ -340,7 +342,7 @@
             <configuration>
               <rules>
                 <requireJavaVersion>
-                  <version>[1.8,)</version>
+                  <version>[11,)</version>
                 </requireJavaVersion>
                 <requireMavenVersion>
                   <version>[3.5,)</version>
@@ -368,7 +370,6 @@
 
       <plugin>
         <artifactId>maven-invoker-plugin</artifactId>
-        <version>3.2.2</version>
         <configuration>
           <addTestClassPath>true</addTestClassPath>
           <filterProperties>
@@ -421,6 +422,32 @@
             </goals>
           </execution>
         </executions>
+        <configuration>
+          <extractors>
+            <extractor>java-annotations</extractor>
+          </extractors>
+          <goalPrefix>exists</goalPrefix>
+        </configuration>
+      </plugin>
+
+      <!-- publish site with 'mvn site-deploy' -->
+      <plugin>
+        <artifactId>maven-scm-publish-plugin</artifactId>
+        <configuration>
+          <content>${project.reporting.outputDirectory}</content>
+          <pubScmUrl>scm:git:git@github.com:chonton/${project.artifactId}.git</pubScmUrl>
+          <scmBranch>gh-pages</scmBranch>
+          <tryUpdate>true</tryUpdate>
+        </configuration>
+        <executions>
+          <execution>
+            <id>scm-publish</id>
+            <goals>
+              <goal>publish-scm</goal>
+            </goals>
+            <phase>site-deploy</phase>
+          </execution>
+        </executions>
       </plugin>
 
       <plugin>
@@ -452,6 +479,13 @@
       </plugin>
 
       <plugin>
+        <artifactId>maven-site-plugin</artifactId>
+        <configuration>
+          <skipDeploy>true</skipDeploy>
+        </configuration>
+      </plugin>
+
+      <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
         <executions>
@@ -472,7 +506,6 @@
       <plugin>
         <groupId>org.sonatype.plugins</groupId>
         <artifactId>nexus-staging-maven-plugin</artifactId>
-        <version>1.6.8</version>
         <extensions>true</extensions>
         <configuration>
           <autoReleaseAfterClose>true</autoReleaseAfterClose>
@@ -513,42 +546,6 @@
   </reporting>
 
   <profiles>
-    <!-- make sure to release for Java 8 -->
-    <profile>
-      <id>release for java 8</id>
-      <activation>
-        <jdk>[9,)</jdk>
-      </activation>
-      <properties>
-        <maven.compiler.release>8</maven.compiler.release>
-      </properties>
-    </profile>
-
-    <!-- publish site to github,
-    1. mvn [clean install] site
-    2. mvn -P gh-pages pre-site
-    -->
-    <profile>
-      <id>gh-pages</id>
-      <build>
-        <plugins>
-          <!-- push stage to github gh-pages -->
-          <plugin>
-            <groupId>com.github.github</groupId>
-            <artifactId>site-maven-plugin</artifactId>
-            <executions>
-              <execution>
-                <goals>
-                  <goal>site</goal>
-                </goals>
-                <phase>pre-site</phase>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
     <!-- release to maven central
     mvn clean deploy -P release
     -->
@@ -597,6 +594,12 @@
           <plugin>
             <groupId>org.sonatype.plugins</groupId>
             <artifactId>nexus-staging-maven-plugin</artifactId>
+            <extensions>true</extensions>
+            <configuration>
+              <serverId>ossrh</serverId>
+              <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+              <autoReleaseAfterClose>true</autoReleaseAfterClose>
+            </configuration>
           </plugin>
 
         </plugins>
