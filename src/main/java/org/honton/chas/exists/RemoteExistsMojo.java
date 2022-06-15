@@ -252,7 +252,9 @@ public class RemoteExistsMojo extends AbstractExistsMojo implements Contextualiz
     }
 
     boolean resourceExists(String resourceName) throws Exception {
-      return wagon.resourceExists(resourceName);
+      /* https://github.com/chonton/exists-maven-plugin/issues/37 */
+      return wagon.resourceExists(
+          resourceName.charAt(0) == '/' ? resourceName.substring(1) : resourceName);
     }
 
     String getContent(String resourceName) throws Exception {
