@@ -15,8 +15,8 @@
 
   <licenses>
     <license>
-      <name>Apache License, Version 2.0</name>
-      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <name>Apache-2.0</name>
+      <url>https://www.apache.org/licenses/LICENSE-2.0</url>
       <distribution>repo</distribution>
     </license>
   </licenses>
@@ -57,7 +57,7 @@
 
     <site>
       <id>github</id>
-      <url>https://chonton.github.com/${project.artifactId}/${project.version}</url>
+      <url>scm:git:ssh://git@github.com/chonton/${project.artifactId}.git</url>
     </site>
 
   </distributionManagement>
@@ -71,7 +71,7 @@
 
     <!-- use org.sonatype.plugins:nexus-staging-maven-plugin instead of org.apache.maven.plugins:maven-deploy-plugin -->
     <maven.deploy.skip>true</maven.deploy.skip>
-    <!-- use com.github.github:site-maven-plugin instead of org.apache.maven.plugins:maven-site-plugin -->
+    <!-- use org.apache.maven.plugins:maven-scm-publish-plugin instead of org.apache.maven.plugins:maven-site-plugin -->
     <maven.site.deploy.skip>true</maven.site.deploy.skip>
     <maven.version>3.5.4</maven.version>
 
@@ -123,12 +123,6 @@
       <artifactId>maven-core</artifactId>
       <version>${maven.version}</version>
       <scope>provided</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>org.codehaus.plexus</groupId>
-          <artifactId>plexus-sec-dispatcher</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
 
     <dependency>
@@ -163,14 +157,12 @@
       <groupId>org.apache.maven.plugin-tools</groupId>
       <artifactId>maven-plugin-annotations</artifactId>
       <version>3.6.4</version>
-      <scope>provided</scope>
     </dependency>
 
     <dependency>
       <groupId>org.apache.maven.wagon</groupId>
       <artifactId>wagon-provider-api</artifactId>
       <version>3.5.1</version>
-      <scope>provided</scope>
     </dependency>
 
     <dependency>
@@ -205,19 +197,6 @@
   <build>
     <pluginManagement>
       <plugins>
-
-        <plugin>
-          <groupId>com.github.github</groupId>
-          <artifactId>site-maven-plugin</artifactId>
-          <version>0.12</version>
-          <configuration>
-            <message>Site documentation</message>
-            <path>${project.version}</path>
-            <repositoryName>${project.version}</repositoryName>
-            <repositoryOwner>chonton</repositoryOwner>
-            <server>github</server>
-          </configuration>
-        </plugin>
 
         <plugin>
           <artifactId>maven-clean-plugin</artifactId>
@@ -439,6 +418,26 @@
         </executions>
       </plugin>
 
+      <!-- publish site to github,
+      1. mvn [clean install] site-deploy
+      -->
+      <plugin>
+        <artifactId>maven-scm-publish-plugin</artifactId>
+        <configuration>
+          <content>target/site</content>
+          <scmBranch>gh-pages</scmBranch>
+          <tryUpdate>true</tryUpdate>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>publish-scm</goal>
+            </goals>
+            <phase>site-deploy</phase>
+          </execution>
+        </executions>
+      </plugin>
+
       <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
         <executions>
@@ -526,10 +525,12 @@
           </reportSet>
         </reportSets>
       </plugin>
+
     </plugins>
   </reporting>
 
   <profiles>
+
     <!-- release to maven central
     mvn clean deploy -P release
     -->
