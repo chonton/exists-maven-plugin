@@ -78,7 +78,7 @@ public class Verify {
         reader,
         "[ERROR] Failed to execute goal "
             + "org.honton.chas:"
-            + getPlugin()
+            + getPlugin("exists-maven-plugin")
             + " (after-installation) on project "
             + gav.artifactId
             + ": Artifact already exists in repository: "
@@ -98,8 +98,15 @@ public class Verify {
         this::settingProperty);
   }
 
+  public void checkInstallWithTestJar() throws IOException {
+    checkBuildLog(
+        this::beforeInstallation,
+        this::afterInstallation,
+        this::settingProperty);
+  }
+
   public void failedToExecuteGoal() throws IOException {
-    checkBuildLog(this::beforeInstallation, this::doesNotExist, this::afterInstallationError);
+    checkBuildLog(this::beforeInstallation, this::afterInstallation, this::afterInstallationError);
   }
 
   public void checkSnapshotTime() throws IOException {
@@ -117,15 +124,15 @@ public class Verify {
   }
 
   private String goalExecution(String executionId) {
-    return "[INFO]" + " --- " + getPlugin() + " (" + executionId + ") @ " + gav.artifactId + " ---";
+    return "[INFO]" + " --- " + getPlugin("exists") + " (" + executionId + ") @ " + gav.artifactId + " ---";
   }
 
   private String coordinates() {
     return gav.groupId + ':' + gav.artifactId + ":jar:" + gav.version;
   }
 
-  private String getPlugin() {
-    return "exists-maven-plugin:" + gav.pluginVersion + ':' + goal;
+  private String getPlugin(String name) {
+    return name +':'+gav.pluginVersion + ':' + goal;
   }
 
   @FunctionalInterface
