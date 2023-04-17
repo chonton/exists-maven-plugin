@@ -124,7 +124,7 @@ public class Verify {
   }
 
   private String goalExecution(String executionId) {
-    return "[INFO]" + " --- " + getPlugin("exists") + " (" + executionId + ") @ " + gav.artifactId + " ---";
+    return "[INFO]" + " --- " + getPlugin("exists-maven-plugin") + " (" + executionId + ") @ " + gav.artifactId + " ---";
   }
 
   private String coordinates() {
