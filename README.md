@@ -35,24 +35,25 @@ In the following table `p:` indicates the default constituent properties are pre
 `project.distributionManagement.` e.g. for artifact parameter, the full default is
 `${project.artifactId}-${project.version}.${project.packaging}`
 
-| Parameter          | Default                                             | Description                                                                             |
-|--------------------|-----------------------------------------------------|-----------------------------------------------------------------------------------------|
-| artifact           | p: ${artifactId}-${version}.${packaging}            | The artifact within the project to query                                                |
-| cmpChecksum        | false                                               | Compare checksums of artifacts                                                          |
-| failIfExists       | false                                               | Fail the build if the artifact already exists                                           |
-| failIfNotExists    | false                                               | Fail the build if the artifact does not exist                                           |
-| failIfNotMatch     | false                                               | Fail the build if the artifact exists and cmpChecksum is set and checksums do not match |
-| lastSnapshotTime   |                                                     | The property to set with the timestamp of the last snapshot install / deploy            |
-| project            | p: ${groupId}:${artifactId}:${packaging}:${version} | The project within the repository to query                                              |
-| property           | ${maven.deploy.skip} _or_ ${maven.install.skip}     | The property to receive the result of the query                                         |
-| repository         | dm: ${repository.url}                               | For remote goal, the repository to query for artifacts                                  |
-| requireGoal        |                                                     | Execute goal only if requireGoal value matches one of the maven command line goals      |
-| serverId           | dm: ${repository.id}                                | For remote goal, the server ID to use for authentication and proxy settings             |
-| skip               | false                                               | Skip executing the plugin                                                               |
-| skipIfSnapshot     | true                                                | Skip the query if the project ends with -SNAPSHOT                                       |
-| snapshotRepository | dm: ${snapshotRepository.url}                       | For remote goal, the repository to query for snapshot artifacts                         |
-| snapshotServerId   | dm: ${snapshotRepository.id}                        | For remote goal, the server ID to use for snapshot authentication and proxy settings    |
-| userProperty       | false                                               | If the property should be set as a user property, to be available in child projects     |
+| Parameter           | Default                                             | Description                                                                             |
+|---------------------|-----------------------------------------------------|-----------------------------------------------------------------------------------------|
+| artifact            | p: ${artifactId}-${version}.${packaging}            | The artifact within the project to query                                                |
+| cmpChecksum         | false                                               | Compare checksums of artifacts                                                          |
+| failIfExists        | false                                               | Fail the build if the artifact already exists                                           |
+| failIfNotExists     | false                                               | Fail the build if the artifact does not exist                                           |
+| failIfNotMatch      | false                                               | Fail the build if the artifact exists and cmpChecksum is set and checksums do not match |
+| lastSnapshotTime    |                                                     | The property to set with the timestamp of the last snapshot install / deploy            |
+| project             | p: ${groupId}:${artifactId}:${packaging}:${version} | The project within the repository to query                                              |
+| classifier          |                                                     | The classifier to use for checking the repository, e.g. 'tests'                         |
+| property            | ${maven.deploy.skip} _or_ ${maven.install.skip}     | The property to receive the result of the query                                         |
+| repository          | dm: ${repository.url}                               | For remote goal, the repository to query for artifacts                                  |
+| requireGoal         |                                                     | Execute goal only if requireGoal value matches one of the maven command line goals      |
+| serverId            | dm: ${repository.id}                                | For remote goal, the server ID to use for authentication and proxy settings             |
+| skip                | false                                               | Skip executing the plugin                                                               |
+| skipIfSnapshot      | true                                                | Skip the query if the project ends with -SNAPSHOT                                       |
+| snapshotRepository  | dm: ${snapshotRepository.url}                       | For remote goal, the repository to query for snapshot artifacts                         |
+| snapshotServerId    | dm: ${snapshotRepository.id}                        | For remote goal, the server ID to use for snapshot authentication and proxy settings    |
+| userProperty        | false                                               | If the property should be set as a user property, to be available in child projects     |
 
 ## Requirements
 

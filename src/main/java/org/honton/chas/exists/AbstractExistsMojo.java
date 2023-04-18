@@ -36,6 +36,10 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
       defaultValue = "${project.groupId}:${project.artifactId}:${project.packaging}:${project.version}")
   private String project;
 
+  /** The classifier to use, e.g., 'tests'. Will be appended to the artifact name. Useful if there is no main artifact. */
+  @Parameter(property = "exists.classifier", defaultValue = "")
+  private String classifier;
+
   /** The build artifact of the project to compare. Defaults to the project's principal artifact. */
   @Parameter(
       property = "exists.artifact",
@@ -131,7 +135,7 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
     }
 
     try {
-      gav = new GAV(project, mavenProject.getPackaging());
+      gav = new GAV(project, mavenProject.getPackaging(), classifier);
       boolean snapshot = isSnapshot();
       if (skipIfSnapshot && snapshot) {
         getLog().debug("skipping -SNAPSHOT");
