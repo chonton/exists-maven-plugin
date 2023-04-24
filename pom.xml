@@ -31,6 +31,10 @@
       <name>Pascal</name>
       <url>https://github.com/pascalgn</url>
     </developer>
+    <developer>
+      <name>Tom Anderegg</name>
+      <url>https://github.com/tomandegg</url>
+    </developer>
   </developers>
 
   <prerequisites>
