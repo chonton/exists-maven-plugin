@@ -15,6 +15,7 @@
   <modules>
     <module>deploy</module>
     <module>deploy-snapshot</module>
+    <module>deploy-test-jar-only</module>
     <module>deploy-with-auth</module>
     <module>deploy-with-encrypted-auth</module>
     <module>deploy-with-header-auth</module>

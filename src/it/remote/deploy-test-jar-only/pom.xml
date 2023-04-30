@@ -1,41 +1,45 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
     <groupId>org.honton.chas.exists.it</groupId>
-    <artifactId>parent</artifactId>
+    <artifactId>remote</artifactId>
     <version>0.0.0</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
-  <artifactId>local</artifactId>
-  <packaging>pom</packaging>
-
-  <modules>
-    <module>fail</module>
-    <module>install</module>
-    <module>install-require-goal</module>
-    <module>install-snapshot</module>
-    <module>install-test-jar-only</module>
-  </modules>
+  <artifactId>exists-deploy-test-jar-only-it</artifactId>
 
   <build>
     <plugins>
-
       <plugin>
-        <artifactId>maven-install-plugin</artifactId>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
         <executions>
-          <!-- install in earlier than usual phase -->
+          <execution>
+            <id>default-jar</id>
+            <phase>none</phase>
+          </execution>
           <execution>
             <goals>
-              <goal>install</goal>
+              <goal>test-jar</goal>
             </goals>
-            <phase>integration-test</phase>
           </execution>
         </executions>
+        <configuration>
+          <skipIfEmpty>true</skipIfEmpty>
+        </configuration>
       </plugin>
-
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-install-plugin</artifactId>
+        <configuration>
+          <allowIncompleteProjects>true</allowIncompleteProjects>
+        </configuration>
+      </plugin>
       <plugin>
         <groupId>org.honton.chas</groupId>
         <artifactId>exists-maven-plugin</artifactId>
@@ -43,29 +47,27 @@
           <execution>
             <id>before-installation</id>
             <goals>
-              <goal>local</goal>
+              <goal>remote</goal>
             </goals>
             <phase>pre-integration-test</phase>
             <configuration>
               <failIfExists>true</failIfExists>
+              <classifier>tests</classifier>
             </configuration>
           </execution>
-
           <execution>
             <id>after-installation</id>
             <goals>
-              <goal>local</goal>
+              <goal>remote</goal>
             </goals>
-            <phase>verify</phase>
+            <phase>integration-test</phase>
             <configuration>
               <failIfNotExists>true</failIfNotExists>
+              <classifier>tests</classifier>
             </configuration>
           </execution>
         </executions>
       </plugin>
-
     </plugins>
-
   </build>
-
 </project>

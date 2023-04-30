@@ -12,9 +12,10 @@ public class GAV {
   final String groupId;
   final String artifactId;
   final String type;
+  final String classifier;
   final String version;
 
-  GAV(String project, String packaging) throws MojoFailureException {
+  GAV(String project, String packaging, String configuredClassifier) throws MojoFailureException {
     Matcher matcher = GAV_PARSER.matcher(project);
     if (!matcher.matches()) {
       throw new MojoFailureException(
@@ -25,7 +26,12 @@ public class GAV {
     artifactId = matcher.group(2);
     String optional = matcher.group(3);
     type = optional != null ? optional.substring(0, optional.length() - 1) : packaging;
+    classifier = configuredClassifier;
     version = matcher.group(4);
+  }
+
+  GAV(String project, String packaging) throws MojoFailureException {
+    this(project, packaging, null);
   }
 
   // https://cwiki.apache.org/confluence/display/MAVEN/Remote+repository+layout
@@ -44,6 +50,6 @@ public class GAV {
 
   private String artifactFile(String version) {
     // ${artifactId}${platformId==null?'':'-'+platformId}-${version}${classifier==null?'':'-'+classifier}.${type}
-    return artifactId + '-' + version + '.' + type;
+    return artifactId + '-' + version + (classifier != null ? "-" + classifier : "") + '.' + type;
   }
 }
