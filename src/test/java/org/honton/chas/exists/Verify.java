@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.regex.Pattern;
 
 public class Verify {
 
@@ -33,12 +34,13 @@ public class Verify {
   }
 
   private static void findMatchLine(BufferedReader reader, String expected) throws IOException {
+  Pattern pattern= Pattern.compile(expected);
     for (; ; ) {
       String line = reader.readLine();
       if (line == null) {
         throw new IllegalStateException(expected + " not found");
       }
-      if (line.startsWith(expected)) {
+      if (pattern.matcher(line).matches()) {
         return;
       }
     }
@@ -58,15 +60,15 @@ public class Verify {
   }
 
   private void beforeInstallation(BufferedReader reader) throws IOException {
-    findExactLine(reader, goalExecution("before-installation"));
+    findMatchLine(reader, goalExecution("before-installation"));
   }
 
   private void afterInstallation(BufferedReader reader) throws IOException {
-    findExactLine(reader, goalExecution("after-installation"));
+    findMatchLine(reader, goalExecution("after-installation"));
   }
 
   public void snapshotTimeSet(BufferedReader reader) throws IOException {
-    findMatchLine(reader, "[INFO] setting artifactTimestamp=");
+    findMatchLine(reader, "\\[INFO\\] setting artifactTimestamp=[0-9]+");
   }
 
   private void settingProperty(BufferedReader reader) throws IOException {
@@ -74,16 +76,16 @@ public class Verify {
   }
 
   public void afterInstallationError(BufferedReader reader) throws IOException {
-    findExactLine(
+    findMatchLine(
         reader,
-        "[ERROR] Failed to execute goal "
+        "\\[ERROR\\] Failed to execute goal "
             + "org.honton.chas:"
-            + getPlugin("exists-maven-plugin")
-            + " (after-installation) on project "
+            + getPlugin()
+            + " \\(after-installation\\) on project "
             + gav.artifactId
             + ": Artifact already exists in repository: "
             + coordinates()
-            + " -> [Help 1]");
+            + " -> \\[Help 1\\]");
   }
 
   private void requireGoal(BufferedReader reader) throws IOException {
@@ -124,15 +126,15 @@ public class Verify {
   }
 
   private String goalExecution(String executionId) {
-    return "[INFO]" + " --- " + getPlugin("exists-maven-plugin") + " (" + executionId + ") @ " + gav.artifactId + " ---";
+    return "\\[INFO\\]" + " --- " + getPlugin() + " \\(" + executionId + "\\) @ " + gav.artifactId + " ---";
   }
 
   private String coordinates() {
     return gav.groupId + ':' + gav.artifactId + ":jar:" + gav.version;
   }
 
-  private String getPlugin(String name) {
-    return name +':'+gav.pluginVersion + ':' + goal;
+  private String getPlugin() {
+    return "exists(-maven-plugin)?:" + gav.pluginVersion + ':' + goal;
   }
 
   @FunctionalInterface
