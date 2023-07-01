@@ -170,13 +170,19 @@ public class RemoteExistsMojo extends AbstractExistsMojo implements Contextualiz
     }
   }
 
+  private static String stripTrailingSlash(String path) {
+    int lastIdx = path.length() - 1;
+    return path.charAt(lastIdx) == '/' ? path.substring(0, lastIdx) : path;
+  }
+
   private class WagonHelper implements AutoCloseable {
 
     private final Wagon wagon;
 
     WagonHelper(String uri) throws Exception {
       String id = isSnapshot() ? snapshotServerId : serverId;
-      wagon = connectWagon(id == null ? "" : id, uri);
+      // https://github.com/chonton/exists-maven-plugin/issues/41
+      wagon = connectWagon(id == null ? "" : id, stripTrailingSlash(uri));
     }
 
     Wagon connectWagon(String serverId, String url) throws Exception {
