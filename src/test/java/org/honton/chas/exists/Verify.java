@@ -18,7 +18,7 @@ public class Verify {
     basePath = basedir.toPath();
     gav = new BuildProperties(basePath);
     this.goal = goal;
-    property = goal.equals("local") ?"maven.install.skip" :"maven.deploy.skip";
+    property = goal.equals("local") ? "maven.install.skip" : "maven.deploy.skip";
   }
 
   private static void findExactLine(BufferedReader reader, String expected) throws IOException {
@@ -34,7 +34,7 @@ public class Verify {
   }
 
   private static void findMatchLine(BufferedReader reader, String expected) throws IOException {
-  Pattern pattern= Pattern.compile(expected);
+    Pattern pattern = Pattern.compile(expected);
     for (; ; ) {
       String line = reader.readLine();
       if (line == null) {
@@ -72,7 +72,7 @@ public class Verify {
   }
 
   private void settingProperty(BufferedReader reader) throws IOException {
-    findExactLine(reader, "[INFO] setting "+property+"=true");
+    findExactLine(reader, "[INFO] setting " + property + "=true");
   }
 
   public void afterInstallationError(BufferedReader reader) throws IOException {
@@ -101,10 +101,7 @@ public class Verify {
   }
 
   public void checkInstallWithTestJar() throws IOException {
-    checkBuildLog(
-        this::beforeInstallation,
-        this::afterInstallation,
-        this::settingProperty);
+    checkBuildLog(this::beforeInstallation, this::afterInstallation, this::settingProperty);
   }
 
   public void failedToExecuteGoal() throws IOException {
@@ -126,7 +123,14 @@ public class Verify {
   }
 
   private String goalExecution(String executionId) {
-    return "\\[INFO\\]" + " --- " + getPlugin() + " \\(" + executionId + "\\) @ " + gav.artifactId + " ---";
+    return "\\[INFO\\]"
+        + " --- "
+        + getPlugin()
+        + " \\("
+        + executionId
+        + "\\) @ "
+        + gav.artifactId
+        + " ---";
   }
 
   private String coordinates() {

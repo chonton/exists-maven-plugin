@@ -14,6 +14,7 @@
 
   <modules>
     <module>fail</module>
+    <module>plugin</module>
     <module>install</module>
     <module>install-require-goal</module>
     <module>install-snapshot</module>

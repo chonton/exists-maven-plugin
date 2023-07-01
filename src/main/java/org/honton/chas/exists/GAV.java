@@ -50,6 +50,23 @@ public class GAV {
 
   private String artifactFile(String version) {
     // ${artifactId}${platformId==null?'':'-'+platformId}-${version}${classifier==null?'':'-'+classifier}.${type}
-    return artifactId + '-' + version + (classifier != null ? "-" + classifier : "") + '.' + type;
+    return artifactId
+        + '-'
+        + version
+        + (classifier != null ? "-" + classifier : "")
+        + '.'
+        + extension();
+  }
+
+  // https://maven.apache.org/ref/3.9.3/maven-core/artifact-handlers.html
+  private String extension() {
+    switch (type) {
+      case "ejb":
+      case "java-doc":
+      case "maven-plugin":
+        return "jar";
+      default:
+        return type;
+    }
   }
 }

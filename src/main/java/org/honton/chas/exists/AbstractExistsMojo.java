@@ -33,10 +33,14 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
    */
   @Parameter(
       property = "exists.project",
-      defaultValue = "${project.groupId}:${project.artifactId}:${project.packaging}:${project.version}")
+      defaultValue =
+          "${project.groupId}:${project.artifactId}:${project.packaging}:${project.version}")
   private String project;
 
-  /** The classifier to use, e.g., 'tests'. Will be appended to the artifact name. Useful if there is no main artifact. */
+  /**
+   * The classifier to use, e.g., 'tests'. Will be appended to the artifact name. Useful if there is
+   * no main artifact.
+   */
   @Parameter(property = "exists.classifier", defaultValue = "")
   private String classifier;
 
@@ -190,14 +194,12 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
   private void checkFailConditions(boolean exists) throws MojoFailureException {
     if (exists) {
       if (failIfExists) {
-        throw new MojoFailureException(
-            "Artifact already exists in repository: " + project);
+        throw new MojoFailureException("Artifact already exists in repository: " + project);
       }
       getLog().info(project + " exists");
     } else {
       if (failIfNotExists) {
-        throw new MojoFailureException(
-            "Artifact does not exist in repository: " + project);
+        throw new MojoFailureException("Artifact does not exist in repository: " + project);
       }
       getLog().info(project + " does not exist");
     }
@@ -264,5 +266,4 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
       throw new MojoFailureException("The project artifact " + path + " has not been created.");
     }
   }
-
 }
