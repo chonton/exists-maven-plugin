@@ -47,7 +47,7 @@ public class LocalExistsMojo extends AbstractExistsMojo {
   protected String getMavenMetadata(String directory) throws Exception {
     Path path = getPath(localRepository.getBasedir(), directory, "maven-metadata-local.xml");
     getLog().debug("Reading metadata from " + path);
-    return new String(Files.readAllBytes(path), StandardCharsets.ISO_8859_1);
+    return Files.readString(path, StandardCharsets.ISO_8859_1);
   }
 
   @Override
@@ -62,7 +62,7 @@ public class LocalExistsMojo extends AbstractExistsMojo {
     Path path = getPath(localRepository.getBasedir(), file);
     getLog().debug("checking for resource " + path);
     if (path.toFile().canRead()) {
-      return new String(Files.readAllBytes(path), StandardCharsets.ISO_8859_1);
+      return Files.readString(path, StandardCharsets.ISO_8859_1);
     }
     return new CheckSum().getChecksum(path);
   }

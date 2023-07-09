@@ -45,7 +45,7 @@ public class GAV {
 
   String artifactDirectory() {
     // ${groupId.replace('.','/')}/${artifactId}${platformId==null?'':'-'+platformId}/${version}/
-    return '/' + groupId.replace('.', '/') + '/' + artifactId + '/' + version + '/';
+    return groupId.replace('.', '/') + '/' + artifactId + '/' + version + '/';
   }
 
   private String artifactFile(String version) {

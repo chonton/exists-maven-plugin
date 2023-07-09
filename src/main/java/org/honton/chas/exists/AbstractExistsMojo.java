@@ -41,7 +41,7 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
    * The classifier to use, e.g., 'tests'. Will be appended to the artifact name. Useful if there is
    * no main artifact.
    */
-  @Parameter(property = "exists.classifier", defaultValue = "")
+  @Parameter(property = "exists.classifier")
   private String classifier;
 
   /** The build artifact of the project to compare. Defaults to the project's principal artifact. */

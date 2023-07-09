@@ -19,7 +19,7 @@
           <groupId>org.honton.chas</groupId>
           <artifactId>exists-maven-plugin</artifactId>
           <configuration>
-            <repository>http://localhost:${deploy.webserver.port}/auth/repo</repository>
+            <repository>http://localhost:${deploy.webserver.port}/auth/repo/</repository>
             <serverId>with-encrypted-auth</serverId>
           </configuration>
         </plugin>

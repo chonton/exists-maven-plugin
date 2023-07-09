@@ -10,7 +10,6 @@ import org.apache.maven.configuration.BeanConfigurationException;
 import org.apache.maven.configuration.BeanConfigurationRequest;
 import org.apache.maven.configuration.BeanConfigurator;
 import org.apache.maven.configuration.DefaultBeanConfigurationRequest;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -126,24 +125,8 @@ public class RemoteExistsMojo extends AbstractExistsMojo implements Contextualiz
     return getRemoteFile(path + "maven-metadata.xml");
   }
 
-  private String getRepositoryBase() throws MojoExecutionException {
-    String repositoryBase;
-    if (isSnapshot()) {
-      if (snapshotRepository == null) {
-        throw new MojoExecutionException("distributionManagement snapshotRepository is not set");
-      }
-      repositoryBase = snapshotRepository;
-    } else {
-      if (repository == null) {
-        throw new MojoExecutionException("distributionManagement repository is not set");
-      }
-      repositoryBase = repository;
-    }
-
-    int lastIdx = repositoryBase.length() - 1;
-    return repositoryBase.charAt(lastIdx) == '/'
-        ? repositoryBase.substring(0, lastIdx)
-        : repositoryBase;
+  private String getRepositoryBase() {
+    return stripTrailingSlash(isSnapshot() ? snapshotRepository : repository);
   }
 
   @Override
@@ -182,7 +165,7 @@ public class RemoteExistsMojo extends AbstractExistsMojo implements Contextualiz
     WagonHelper(String uri) throws Exception {
       String id = isSnapshot() ? snapshotServerId : serverId;
       // https://github.com/chonton/exists-maven-plugin/issues/41
-      wagon = connectWagon(id == null ? "" : id, stripTrailingSlash(uri));
+      wagon = connectWagon(id == null ? "" : id, uri);
     }
 
     Wagon connectWagon(String serverId, String url) throws Exception {
@@ -257,10 +240,8 @@ public class RemoteExistsMojo extends AbstractExistsMojo implements Contextualiz
       return authInfo;
     }
 
-    boolean resourceExists(String resourceName) throws Exception {
-      /* https://github.com/chonton/exists-maven-plugin/issues/37 */
-      return wagon.resourceExists(
-          resourceName.charAt(0) == '/' ? resourceName.substring(1) : resourceName);
+    boolean resourceExists(String path) throws Exception {
+      return wagon.resourceExists(path);
     }
 
     String getContent(String resourceName) throws Exception {
