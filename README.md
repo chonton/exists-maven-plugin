@@ -3,19 +3,6 @@
 Check if a maven artifact exists. Designed around the use case of skipping deployment if the stable
 version already exists.
 
-## How This Plugin Determines if Builds are the "Same"
-There are two strategies to determine if a maven artifacts are the "same" as what the project just
-built: version comparison, and checksum comparison.  By default, this plugin uses version comparison.
-Version comparison simply checks if the group:artifact:version matches an artifact in the local or
-remote repository.  This simple check will not catch the situation where the developer has failed to
-update the version in pom.xml.
-
-Alternatively, when `<cmpChecksum>` is true, this plugin compares the checksum of the local or remote
-artifact with the just built artifact.  Checksum comparison requires that the maven build be
-reproducible.  Without specific configuration, maven builds are **not** reproducible.  See
-[Configuring for Reproducible Builds](https://maven.apache.org/guides/mini/guide-reproducible-builds.html)
-for details on making your build reproducible.
-
 ## Goals
 
 There are two goals: [local](https://chonton.github.io/exists-maven-plugin/local-mojo.html)
@@ -27,7 +14,7 @@ Mojo details at [plugin info](https://chonton.github.io/exists-maven-plugin/plug
 
 ## Parameters
 
-Every parameter can be set with a maven property **exists.**_<parameter_name\>_. e.g. skip parameter
+Most parameter can be set with a maven property **exists.**_<parameter_name\>_. e.g. skip parameter
 can be set from command line -Dexists.skip=true.
 
 In the following table `p:` indicates the default constituent properties are prefixed with
@@ -35,30 +22,25 @@ In the following table `p:` indicates the default constituent properties are pre
 `project.distributionManagement.` e.g. for artifact parameter, the full default is
 `${project.artifactId}-${project.version}.${project.packaging}`
 
-| Parameter           | Default                                             | Description                                                                             |
-|---------------------|-----------------------------------------------------|-----------------------------------------------------------------------------------------|
-| artifact            | p: ${artifactId}-${version}.${packaging}            | The artifact within the project to query                                                |
-| cmpChecksum         | false                                               | Compare checksums of artifacts                                                          |
-| failIfExists        | false                                               | Fail the build if the artifact already exists                                           |
-| failIfNotExists     | false                                               | Fail the build if the artifact does not exist                                           |
-| failIfNotMatch      | false                                               | Fail the build if the artifact exists and cmpChecksum is set and checksums do not match |
-| lastSnapshotTime    |                                                     | The property to set with the timestamp of the last snapshot install / deploy            |
-| project             | p: ${groupId}:${artifactId}:${packaging}:${version} | The project within the repository to query                                              |
-| classifier          |                                                     | The classifier to use for checking the repository, e.g. 'tests'                         |
-| property            | ${maven.deploy.skip} _or_ ${maven.install.skip}     | The property to receive the result of the query                                         |
-| repository          | dm: ${repository.url}                               | For remote goal, the repository to query for artifacts                                  |
-| requireGoal         |                                                     | Execute goal only if requireGoal value matches one of the maven command line goals      |
-| serverId            | dm: ${repository.id}                                | For remote goal, the server ID to use for authentication and proxy settings             |
-| skip                | false                                               | Skip executing the plugin                                                               |
-| skipIfSnapshot      | true                                                | Skip the query if the project ends with -SNAPSHOT                                       |
-| snapshotRepository  | dm: ${snapshotRepository.url}                       | For remote goal, the repository to query for snapshot artifacts                         |
-| snapshotServerId    | dm: ${snapshotRepository.id}                        | For remote goal, the server ID to use for snapshot authentication and proxy settings    |
-| userProperty        | false                                               | If the property should be set as a user property, to be available in child projects     |
-
-## Requirements
-
-- Maven 3.8.1 or later
-- Java 11 or later
+| Parameter          | Default                                             | Description                                                                             |
+|--------------------|-----------------------------------------------------|-----------------------------------------------------------------------------------------|
+| artifact           | p: ${artifactId}-${version}.${packaging}            | The artifact within the project to query                                                |
+| cmpChecksum        | false                                               | Compare checksums of artifacts                                                          |
+| failIfExists       | false                                               | Fail the build if the artifact already exists                                           |
+| failIfNotExists    | false                                               | Fail the build if the artifact does not exist                                           |
+| failIfNotMatch     | false                                               | Fail the build if the artifact exists and cmpChecksum is set and checksums do not match |
+| lastSnapshotTime   |                                                     | The property to set with the timestamp of the last snapshot install / deploy            |
+| project            | p: ${groupId}:${artifactId}:${packaging}:${version} | The project within the repository to query                                              |
+| classifier         |                                                     | The classifier to use for checking the repository, e.g. 'tests'                         |
+| property           | ${maven.deploy.skip} _or_ ${maven.install.skip}     | The property to receive the result of the query                                         |
+| repository         | dm: ${repository.url}                               | For remote goal, the repository to query for artifacts                                  |
+| requireGoal        |                                                     | Execute goal only if requireGoal value matches one of the maven command line goals      |
+| serverId           | dm: ${repository.id}                                | For remote goal, the server ID to use for authentication and proxy settings             |
+| skip               | false                                               | Skip executing the plugin                                                               |
+| skipIfSnapshot     | true                                                | Skip the query if the project ends with -SNAPSHOT                                       |
+| snapshotRepository | dm: ${snapshotRepository.url}                       | For remote goal, the repository to query for snapshot artifacts                         |
+| snapshotServerId   | dm: ${snapshotRepository.id}                        | For remote goal, the server ID to use for snapshot authentication and proxy settings    |
+| userProperty       | false                                               | If the property should be set as a user property, to be available in child projects     |
 
 ## Typical Use
 
@@ -82,6 +64,46 @@ In the following table `p:` indicates the default constituent properties are pre
 
   </plugins>
 </build>
+```
+
+## How This Plugin Determines if Builds are the "Same"
+There are two strategies to determine if a maven artifacts are the "same" as what the project just
+built: version comparison, and checksum comparison.  By default, this plugin uses version comparison.
+Version comparison simply checks if the group:artifact:version matches an artifact in the local or
+remote repository.  This simple check will not catch the situation where the developer has failed to
+update the version in pom.xml.
+
+Alternatively, when `<cmpChecksum>` is true, this plugin compares the checksum of the local or remote
+artifact with the just built artifact.  Checksum comparison requires that the maven build be
+reproducible.  Without specific configuration, maven builds are **not** reproducible.  See
+[Configuring for Reproducible Builds](https://maven.apache.org/guides/mini/guide-reproducible-builds.html)
+for details on making your build reproducible.
+
+## Custom Packaging
+
+If your build uses a custom packaging type, (not one of the 
+[Default Artifact Handlers](https://maven.apache.org/ref/3.9.6/maven-core/artifact-handlers.html)),
+then you will need to specify a `packageExtension` if the file extension does not match the package
+type. e.g. for `content-package` packaging specify a zip extension with the following configuration:
+
+```xml
+
+<pluginManagement>
+  <plugins>
+
+    <plugin>
+      <groupId>org.honton.chas</groupId>
+      <artifactId>exists-maven-plugin</artifactId>
+      <version>0.14.0</version>
+      <configuration>
+        <packageExtension>
+          <content-package>zip</content-package>
+        </packageExtension>
+      </configuration>
+    </plugin>
+
+  </plugins>
+</pluginManagement>
 ```
 
 ## Snapshot builds

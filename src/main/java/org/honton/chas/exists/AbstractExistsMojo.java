@@ -4,6 +4,7 @@ import java.io.StringReader;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.repository.metadata.Metadata;
 import org.apache.maven.artifact.repository.metadata.SnapshotVersion;
@@ -116,6 +117,13 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
   @Parameter(property = "exists.lastSnapshotTime")
   private String lastSnapshotTime;
 
+  /**
+   * Package to file extension mappings.
+   *
+   * @since 0.14.0
+   */
+  @Parameter private Map<String, String> packageExtensions;
+
   protected GAV gav;
 
   static Path getPath(String first, String... more) {
@@ -139,7 +147,7 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
     }
 
     try {
-      gav = new GAV(project, mavenProject.getPackaging(), classifier);
+      gav = new GAV(project, mavenProject.getPackaging(), classifier, packageExtensions);
       boolean snapshot = isSnapshot();
       if (skipIfSnapshot && snapshot) {
         getLog().debug("skipping -SNAPSHOT");

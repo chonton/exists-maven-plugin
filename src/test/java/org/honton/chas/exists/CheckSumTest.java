@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
+import java.util.Map;
 import org.apache.maven.plugin.MojoFailureException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,7 +22,7 @@ class CheckSumTest {
 
   private Path getPath(String packaging) throws MojoFailureException {
     Assertions.assertNotNull(projectGAV);
-    GAV gav = new GAV(projectGAV, packaging);
+    GAV gav = new GAV(projectGAV, packaging, null, Map.of());
     Assertions.assertNotNull(localRepositoryPath);
     return FileSystems.getDefault().getPath(localRepositoryPath, gav.artifactLocation());
   }
