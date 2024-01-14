@@ -4,7 +4,7 @@
 
   <groupId>org.honton.chas</groupId>
   <artifactId>exists-maven-plugin</artifactId>
-  <version>0.12.0</version>
+  <version>0.13.0</version>
   <packaging>maven-plugin</packaging>
 
   <name>Artifact Exists Maven Plugin</name>
@@ -67,9 +67,9 @@
   </distributionManagement>
 
   <properties>
-    <git-code-format-maven-plugin.version>4.2</git-code-format-maven-plugin.version>
-    <javadoc-plugin.version>3.5.0</javadoc-plugin.version>
-    <junit.version>5.8.2</junit.version>
+    <git-code-format-maven-plugin.version>5.1</git-code-format-maven-plugin.version>
+    <javadoc-plugin.version>3.6.3</javadoc-plugin.version>
+    <junit.version>5.10.1</junit.version>
 
     <maven.compiler.release>11</maven.compiler.release>
     <maven.compiler.source>${maven.compiler.release}</maven.compiler.source>
@@ -79,7 +79,7 @@
     <maven.deploy.skip>true</maven.deploy.skip>
     <!-- use org.apache.maven.plugins:maven-scm-publish-plugin instead of org.apache.maven.plugins:maven-site-plugin -->
     <maven.site.deploy.skip>true</maven.site.deploy.skip>
-    <maven.version>3.5.4</maven.version>
+    <maven.version>3.8.1</maven.version>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
@@ -219,17 +219,17 @@
 
         <plugin>
           <artifactId>maven-clean-plugin</artifactId>
-          <version>3.2.0</version>
+          <version>3.3.2</version>
         </plugin>
 
         <plugin>
           <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.11.0</version>
+          <version>3.12.1</version>
         </plugin>
 
         <plugin>
           <artifactId>maven-dependency-plugin</artifactId>
-          <version>3.6.0</version>
+          <version>3.6.1</version>
         </plugin>
 
         <plugin>
@@ -239,7 +239,7 @@
 
         <plugin>
           <artifactId>maven-enforcer-plugin</artifactId>
-          <version>3.3.0</version>
+          <version>3.4.1</version>
         </plugin>
 
         <plugin>
@@ -269,12 +269,12 @@
 
         <plugin>
           <artifactId>maven-plugin-plugin</artifactId>
-          <version>3.9.0</version>
+          <version>3.11.0</version>
         </plugin>
 
         <plugin>
           <artifactId>maven-project-info-reports-plugin</artifactId>
-          <version>3.4.3</version>
+          <version>3.5.0</version>
         </plugin>
 
         <plugin>
@@ -294,18 +294,18 @@
 
         <plugin>
           <artifactId>maven-source-plugin</artifactId>
-          <version>3.2.1</version>
+          <version>3.3.0</version>
         </plugin>
 
         <plugin>
           <artifactId>maven-surefire-plugin</artifactId>
-          <version>3.1.0</version>
+          <version>3.2.5</version>
         </plugin>
 
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>build-helper-maven-plugin</artifactId>
-          <version>3.4.0</version>
+          <version>3.5.0</version>
         </plugin>
 
       </plugins>
