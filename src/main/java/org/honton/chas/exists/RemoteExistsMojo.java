@@ -10,6 +10,7 @@ import org.apache.maven.configuration.BeanConfigurationException;
 import org.apache.maven.configuration.BeanConfigurationRequest;
 import org.apache.maven.configuration.BeanConfigurator;
 import org.apache.maven.configuration.DefaultBeanConfigurationRequest;
+import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -125,8 +126,20 @@ public class RemoteExistsMojo extends AbstractExistsMojo implements Contextualiz
     return getRemoteFile(path + "maven-metadata.xml");
   }
 
-  private String getRepositoryBase() {
-    return stripTrailingSlash(isSnapshot() ? snapshotRepository : repository);
+  private String getRepositoryBase() throws MojoFailureException {
+    String base;
+    if (isSnapshot()) {
+      if (snapshotRepository == null) {
+        throw new MojoFailureException("<distributionManagement><snapshotRepository><url> not set");
+      }
+      base = snapshotRepository;
+    } else {
+      if (repository == null) {
+        throw new MojoFailureException("<distributionManagement><repository><url> not set");
+      }
+      base = repository;
+    }
+    return stripTrailingSlash(base);
   }
 
   @Override
@@ -199,6 +212,7 @@ public class RemoteExistsMojo extends AbstractExistsMojo implements Contextualiz
       bcr.setConfiguration(serverConfiguration);
       beanConfigurator.configureBean(bcr);
     }
+
     /* end
     https://github.com/chonton/exists-maven-plugin/issues/16,
     https://github.com/chonton/exists-maven-plugin/issues/27 */
