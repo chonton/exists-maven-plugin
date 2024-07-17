@@ -61,9 +61,6 @@ public class LocalExistsMojo extends AbstractExistsMojo {
   protected String getArtifactChecksum(String file) throws IOException, GeneralSecurityException {
     Path path = getPath(localRepository.getBasedir(), file);
     getLog().debug("checking for resource " + path);
-    if (path.toFile().canRead()) {
-      return Files.readString(path, StandardCharsets.ISO_8859_1);
-    }
     return new CheckSum().getChecksum(path);
   }
 }
