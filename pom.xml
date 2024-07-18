@@ -79,7 +79,7 @@
     <maven.deploy.skip>true</maven.deploy.skip>
     <!-- use org.apache.maven.plugins:maven-scm-publish-plugin instead of org.apache.maven.plugins:maven-site-plugin -->
     <maven.site.deploy.skip>true</maven.site.deploy.skip>
-    <maven.version>3.8.1</maven.version>
+    <maven.version>3.8.8</maven.version>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
@@ -224,7 +224,7 @@
 
         <plugin>
           <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.12.1</version>
+          <version>3.13.0</version>
         </plugin>
 
         <plugin>
@@ -244,7 +244,7 @@
 
         <plugin>
           <artifactId>maven-gpg-plugin</artifactId>
-          <version>3.1.0</version>
+          <version>3.2.4</version>
         </plugin>
 
         <plugin>
@@ -254,22 +254,22 @@
 
         <plugin>
           <artifactId>maven-invoker-plugin</artifactId>
-          <version>3.6.0</version>
+          <version>3.6.1</version>
         </plugin>
 
         <plugin>
           <artifactId>maven-jar-plugin</artifactId>
-          <version>3.3.0</version>
+          <version>3.4.1</version>
         </plugin>
 
         <plugin>
           <artifactId>maven-javadoc-plugin</artifactId>
-          <version>3.5.0</version>
+          <version>3.6.3</version>
         </plugin>
 
         <plugin>
           <artifactId>maven-plugin-plugin</artifactId>
-          <version>3.11.0</version>
+          <version>3.12.0</version>
         </plugin>
 
         <plugin>
@@ -294,7 +294,7 @@
 
         <plugin>
           <artifactId>maven-source-plugin</artifactId>
-          <version>3.3.0</version>
+          <version>3.3.1</version>
         </plugin>
 
         <plugin>
@@ -451,12 +451,14 @@
       <plugin>
         <artifactId>maven-scm-publish-plugin</artifactId>
         <configuration>
-          <content>target/site</content>
+          <content>${project.reporting.outputDirectory}</content>
+          <pubScmUrl>scm:git:git@github.com:chonton/${project.artifactId}.git</pubScmUrl>
           <scmBranch>gh-pages</scmBranch>
           <tryUpdate>true</tryUpdate>
         </configuration>
         <executions>
           <execution>
+            <id>scm-publish</id>
             <goals>
               <goal>publish-scm</goal>
             </goals>
@@ -511,18 +513,6 @@
         </executions>
       </plugin>
 
-      <plugin>
-        <groupId>org.sonatype.plugins</groupId>
-        <artifactId>nexus-staging-maven-plugin</artifactId>
-        <version>1.6.13</version>
-        <extensions>true</extensions>
-        <configuration>
-          <autoReleaseAfterClose>true</autoReleaseAfterClose>
-          <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-          <serverId>ossrh</serverId>
-        </configuration>
-      </plugin>
-
     </plugins>
   </build>
 
@@ -553,9 +543,7 @@
               <report>team</report>
               <report>licenses</report>
               <report>dependency-info</report>
-              <report>dependency-management</report>
               <report>distribution-management</report>
-              <report>plugin-management</report>
               <report>ci-management</report>
               <report>scm</report>
               <report>summary</report>
@@ -568,7 +556,6 @@
   </reporting>
 
   <profiles>
-
     <!-- release to maven central
     mvn clean deploy -P release
     -->
