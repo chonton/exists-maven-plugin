@@ -70,7 +70,7 @@ In the following table `p:` indicates the default constituent properties are pre
     <plugin>
       <groupId>org.honton.chas</groupId>
       <artifactId>exists-maven-plugin</artifactId>
-      <version>0.13.0</version>
+      <version>0.14.0</version>
       <executions>
         <execution>
           <goals>

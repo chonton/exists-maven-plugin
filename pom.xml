@@ -4,7 +4,7 @@
 
   <groupId>org.honton.chas</groupId>
   <artifactId>exists-maven-plugin</artifactId>
-  <version>0.13.0</version>
+  <version>0.14.0</version>
   <packaging>maven-plugin</packaging>
 
   <name>Artifact Exists Maven Plugin</name>
@@ -34,6 +34,10 @@
     <developer>
       <name>Tom Anderegg</name>
       <url>https://github.com/tomandegg</url>
+    </developer>
+    <developer>
+      <name>clembo590</name>
+      <url>https://github.com/clembo590</url>
     </developer>
   </developers>
 
