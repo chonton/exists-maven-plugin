@@ -145,7 +145,7 @@ public class RemoteExistsMojo extends AbstractExistsMojo implements Contextualiz
   @Override
   protected boolean checkArtifactExists(String path) throws Exception {
     String repositoryBase = getRepositoryBase();
-    getLog().info("Checking for artifact at " + repositoryBase + path);
+    getLog().info("Checking for artifact at " + repositoryBase + "/" + path);
     try (WagonHelper wagonHelper = new WagonHelper(repositoryBase)) {
       return wagonHelper.resourceExists(path);
     }
