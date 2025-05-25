@@ -52,26 +52,15 @@
   </scm>
 
   <distributionManagement>
+        <site>
+          <id>github</id>
+          <url>scm:git:ssh://git@github.com/chonton/${project.artifactId}.git</url>
+        </site>
 
-    <repository>
-      <id>ossrh</id>
-      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-    </repository>
-
-    <snapshotRepository>
-      <id>ossrh</id>
-      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-    </snapshotRepository>
-
-    <site>
-      <id>github</id>
-      <url>scm:git:ssh://git@github.com/chonton/${project.artifactId}.git</url>
-    </site>
-
-  </distributionManagement>
+     </distributionManagement>
 
   <properties>
-    <git-code-format-maven-plugin.version>5.1</git-code-format-maven-plugin.version>
+    <git-code-format-maven-plugin.version>5.3</git-code-format-maven-plugin.version>
     <javadoc-plugin.version>3.6.3</javadoc-plugin.version>
     <junit.version>5.10.1</junit.version>
 
@@ -79,12 +68,12 @@
     <maven.compiler.source>${maven.compiler.release}</maven.compiler.source>
     <maven.compiler.target>${maven.compiler.release}</maven.compiler.target>
 
-    <!-- use org.sonatype.plugins:nexus-staging-maven-plugin instead of org.apache.maven.plugins:maven-deploy-plugin -->
+    <!-- org.sonatype.central:central-publishing-maven-plugin instead of org.apache.maven.plugins:maven-deploy-plugin -->
     <maven.deploy.skip>true</maven.deploy.skip>
-    <!-- use org.apache.maven.plugins:maven-scm-publish-plugin instead of org.apache.maven.plugins:maven-site-plugin -->
+    <!-- use com.github.github:site-maven-plugin instead of org.apache.maven.plugins:maven-site-plugin -->
     <maven.site.deploy.skip>true</maven.site.deploy.skip>
-    <maven.version>3.8.8</maven.version>
 
+    <maven.version>3.9.6</maven.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
@@ -107,7 +96,7 @@
       <dependency>
         <groupId>org.codehaus.plexus</groupId>
         <artifactId>plexus-utils</artifactId>
-        <version>3.4.1</version>
+        <version>3.5.1</version>
       </dependency>
 
       <dependency>
@@ -268,7 +257,7 @@
 
         <plugin>
           <artifactId>maven-javadoc-plugin</artifactId>
-          <version>3.6.3</version>
+          <version>${javadoc-plugin.version}</version>
         </plugin>
 
         <plugin>
@@ -307,6 +296,12 @@
         </plugin>
 
         <plugin>
+          <groupId>org.honton.chas</groupId>
+          <artifactId>dependency-check-maven-plugin</artifactId>
+          <version>1.1.0</version>
+        </plugin>
+
+        <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>build-helper-maven-plugin</artifactId>
           <version>3.5.0</version>
@@ -328,22 +323,6 @@
               <goal>format-code</goal>
             </goals>
             <phase>validate</phase>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <configuration>
-          <failOnWarning>true</failOnWarning>
-          <ignoreNonCompile>true</ignoreNonCompile>
-        </configuration>
-        <executions>
-          <execution>
-            <id>check-dependencies</id>
-            <goals>
-              <goal>analyze-only</goal>
-            </goals>
           </execution>
         </executions>
       </plugin>
@@ -455,18 +434,39 @@
       <plugin>
         <artifactId>maven-scm-publish-plugin</artifactId>
         <configuration>
-          <content>${project.reporting.outputDirectory}</content>
-          <pubScmUrl>scm:git:git@github.com:chonton/${project.artifactId}.git</pubScmUrl>
+          <content>target/site</content>
           <scmBranch>gh-pages</scmBranch>
           <tryUpdate>true</tryUpdate>
         </configuration>
         <executions>
           <execution>
-            <id>scm-publish</id>
             <goals>
               <goal>publish-scm</goal>
             </goals>
             <phase>site-deploy</phase>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.honton.chas</groupId>
+        <artifactId>dependency-check-maven-plugin</artifactId>
+        <version>1.1.0</version>
+        <executions>
+          <execution>
+            <id>compile-scope</id>
+            <goals>
+              <goal>main</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>test-scope</id>
+            <goals>
+              <goal>test</goal>
+            </goals>
+            <configuration>
+              <ignoreDependencies>org.junit.jupiter:junit-jupiter</ignoreDependencies>
+            </configuration>
           </execution>
         </executions>
       </plugin>
@@ -606,14 +606,14 @@
           </plugin>
 
           <plugin>
-            <groupId>org.sonatype.plugins</groupId>
-            <artifactId>nexus-staging-maven-plugin</artifactId>
-            <version>1.6.13</version>
+            <groupId>org.sonatype.central</groupId>
+            <artifactId>central-publishing-maven-plugin</artifactId>
+            <version>0.7.0</version>
             <extensions>true</extensions>
             <configuration>
-              <serverId>ossrh</serverId>
-              <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-              <autoReleaseAfterClose>true</autoReleaseAfterClose>
+              <autoPublish>true</autoPublish>
+              <publishingServerId>central</publishingServerId>
+              <waitUntil>published</waitUntil>
             </configuration>
           </plugin>
 
