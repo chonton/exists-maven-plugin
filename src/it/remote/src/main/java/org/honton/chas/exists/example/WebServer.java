@@ -1,121 +1,119 @@
 package org.honton.chas.exists.example;
 
-import fi.iki.elonen.NanoHTTPD;
-import fi.iki.elonen.NanoHTTPD.Response.Status;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpServer;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
-public class WebServer extends NanoHTTPD {
+public class WebServer implements HttpHandler {
 
-  private static final Logger LOG = Logger.getLogger(WebServer.class.getName());
+    private static final Logger LOG = Logger.getLogger(WebServer.class.getName());
 
-  private static final Map<String, String> TYPES = new HashMap<>();
+    private static final Map<String, String> TYPES = new HashMap<>();
+    public static final int UNAUTHORIZED = 401;
+    public static final int NOT_FOUND = 404;
+    public static final int OK = 200;
+    public static final int NOT_IMPLEMENTED = 501;
 
-  static {
-    TYPES.put("jar", "application/java-archive");
-    TYPES.put("asc", "text/plain");
-    TYPES.put("pom", "text/xml");
-  }
-
-  private Map<String, byte[]> storage = new HashMap<>();
-
-  public WebServer(int port) throws IOException {
-    super(port);
-    LOG.fine("Server running on port " + port);
-    start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
-  }
-
-  public static void main(String[] args) throws IOException {
-    new WebServer(Integer.parseInt(args[0]));
-  }
-
-  byte[] getInput(IHTTPSession session) throws IOException {
-    int length = Integer.parseInt(getHeader(session, "Content-Length"));
-    byte[] content = new byte[length];
-    session.getInputStream().read(content);
-    return content;
-  }
-
-  private String getHeader(IHTTPSession session, String key) {
-    for (Map.Entry<String, String> header : session.getHeaders().entrySet()) {
-      if (header.getKey().equalsIgnoreCase(key)) {
-        return header.getValue();
-      }
+    static {
+        TYPES.put("jar", "application/java-archive");
+        TYPES.put("asc", "text/plain");
+        TYPES.put("pom", "text/xml");
     }
-    return null;
-  }
 
-  @Override
-  public Response serve(IHTTPSession session) {
-    LOG.fine(session.getMethod() + " " + session.getUri());
-    Response response = generateResponse(session);
-    LOG.fine("Response: " + response.getStatus());
-    return response;
-  }
+    private final Map<String, byte[]> storage = new HashMap<>();
 
-  private Response generateResponse(IHTTPSession session) {
-    String uri = session.getUri();
-    if (uri.startsWith("/auth")) {
-      String authorization = session.getHeaders().get("authorization");
-      if (authorization == null || !authorization.equals("Basic dXNlcjE6cGFzc3dvcmQxMjM=")) {
-        Response response = NanoHTTPD.newFixedLengthResponse(Status.UNAUTHORIZED, "", null);
-        response.addHeader("WWW-Authenticate", "Basic realm=\"Authentication needed\"");
-        return response;
-      }
-      uri = uri.substring("/auth".length());
-    } else if (uri.startsWith("/header-auth")) {
-      String authorization = session.getHeaders().get("job-token");
-      if (authorization == null) {
-        return NanoHTTPD.newFixedLengthResponse(Status.UNAUTHORIZED, "Need Job-Token", null);
-      }
-      uri = uri.substring("/header-auth".length());
+    public WebServer(int port) throws IOException {
+        HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
+        server.createContext("/", this);
+        server.start();
+        LOG.fine("Server running on port " + port);
     }
-    String type = getType(uri);
-    switch (session.getMethod()) {
-      case HEAD:
-        {
-          if (!storage.containsKey(uri)) {
-            return NanoHTTPD.newFixedLengthResponse(Status.NOT_FOUND, type, null);
-          }
-          return NanoHTTPD.newFixedLengthResponse(Status.OK, type, null);
+
+    public static void main(String[] args) throws IOException {
+        new WebServer(Integer.parseInt(args[0]));
+    }
+
+    @Override
+    public void handle(HttpExchange exchange) throws IOException {
+        LOG.fine(exchange.getRequestMethod() + " " + exchange.getRequestURI());
+        int statusCode = generateResponse(exchange);
+        LOG.fine("Response: " + statusCode);
+    }
+
+    private int generateResponse(HttpExchange exchange) throws IOException {
+        String path = authorize(exchange);
+        if (path == null) {
+            return UNAUTHORIZED;
         }
-      case GET:
-        {
-          byte[] file = storage.get(uri);
-          if (file == null) {
-            return NanoHTTPD.newFixedLengthResponse(Status.NOT_FOUND, type, uri);
-          }
-          return newFixedLengthResponse(
-              Status.OK, type, new ByteArrayInputStream(file), (long) file.length);
-        }
-      case PUT:
-        {
-          try {
-            storage.put(uri, getInput(session));
-            return NanoHTTPD.newFixedLengthResponse(Status.OK, "", uri);
-          } catch (IOException e) {
-            return NanoHTTPD.newFixedLengthResponse(
-                Status.INTERNAL_ERROR, "text/plain", e.getMessage());
-          }
-        }
-      default:
-        return NanoHTTPD.newFixedLengthResponse(
-            Status.NOT_IMPLEMENTED, "text/plain", session.getMethod() + " not supported");
-    }
-  }
 
-  private String getType(String uri) {
-    int dot = uri.lastIndexOf('.');
-    if (dot == -1) {
-      return "text/plain";
-    } else {
-      String suffix = uri.substring(dot + 1);
-      String type = TYPES.get(suffix);
-      return type != null ? type : "text/" + suffix;
+        switch (exchange.getRequestMethod()) {
+            case "HEAD": {
+                int statusCode = !storage.containsKey(path) ? NOT_FOUND : OK;
+                exchange.sendResponseHeaders(statusCode, -1);
+                return statusCode;
+            }
+            case "GET": {
+                byte[] file = storage.get(path);
+                if (file == null) {
+                    exchange.sendResponseHeaders(NOT_FOUND, -1);
+                    return NOT_FOUND;
+                }
+                String type = getType(path);
+                exchange.getResponseHeaders().set("Content-Type", type);
+                exchange.sendResponseHeaders(OK, file.length);
+                try (OutputStream os = exchange.getResponseBody()) {
+                    os.write(file);
+                }
+            }
+            case "PUT": {
+                try (InputStream is = exchange.getRequestBody()) {
+                    storage.put(path, is.readAllBytes());
+                    exchange.sendResponseHeaders(OK, -1);
+                }
+            }
+            default:
+                exchange.sendResponseHeaders(NOT_IMPLEMENTED, -1);
+                return NOT_IMPLEMENTED;
+        }
     }
-  }
+
+    private static String authorize(HttpExchange exchange) throws IOException {
+        String uri = exchange.getRequestURI().getPath();
+        if (uri.startsWith("/auth")) {
+            String authorization = exchange.getRequestHeaders().getFirst("authorization");
+            if (authorization == null || !authorization.equals("Basic dXNlcjE6cGFzc3dvcmQxMjM=")) {
+                exchange.getResponseHeaders().set("WWW-Authenticate", "Basic realm=\"Authentication needed\"");
+                exchange.sendResponseHeaders(UNAUTHORIZED, -1);
+                return null;
+            }
+            return uri.substring("/auth".length());
+        } else if (uri.startsWith("/header-auth")) {
+            String authorization = exchange.getRequestHeaders().getFirst("job-token");
+            if (authorization == null) {
+                exchange.sendResponseHeaders(UNAUTHORIZED, -1);
+                return null;
+            }
+            return uri.substring("/header-auth".length());
+        }
+        return uri;
+    }
+
+    private static String getType(String uri) {
+        int dot = uri.lastIndexOf('.');
+        if (dot == -1) {
+            return "text/plain";
+        } else {
+            String suffix = uri.substring(dot + 1);
+            String type = TYPES.get(suffix);
+            return type != null ? type : "text/" + suffix;
+        }
+    }
 }

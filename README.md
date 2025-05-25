@@ -3,6 +3,11 @@
 Check if a maven artifact exists. Designed around the use case of skipping deployment if the stable
 version already exists.
 
+## Requirements
+
+- At least Maven 3.8.8
+- At least Java 17
+
 ## Goals
 
 There are two goals: [local](https://chonton.github.io/exists-maven-plugin/local-mojo.html)
@@ -14,7 +19,7 @@ Mojo details at [plugin info](https://chonton.github.io/exists-maven-plugin/plug
 
 ## Parameters
 
-Most parameter can be set with a maven property **exists.**_<parameter_name\>_. e.g. skip parameter
+Most parameters can be set with a maven property `**exists.**_<parameter_name\>_`. e.g. skip parameter
 can be set from command line -Dexists.skip=true.
 
 In the following table `p:` indicates the default constituent properties are prefixed with
@@ -52,7 +57,7 @@ In the following table `p:` indicates the default constituent properties are pre
     <plugin>
       <groupId>org.honton.chas</groupId>
       <artifactId>exists-maven-plugin</artifactId>
-      <version>0.14.0</version>
+      <version>0.15.0</version>
       <executions>
         <execution>
           <goals>
@@ -81,7 +86,7 @@ for details on making your build reproducible.
 
 ## Custom Packaging
 
-If your build uses a custom packaging type, (not one of the 
+If your build uses a custom packaging type, (not one of the
 [Default Artifact Handlers](https://maven.apache.org/ref/3.9.6/maven-core/artifact-handlers.html)),
 then you will need to specify a `packageExtension` if the file extension does not match the package
 type. e.g. for `content-package` packaging specify a zip extension with the following configuration:
@@ -94,7 +99,7 @@ type. e.g. for `content-package` packaging specify a zip extension with the foll
     <plugin>
       <groupId>org.honton.chas</groupId>
       <artifactId>exists-maven-plugin</artifactId>
-      <version>0.14.0</version>
+      <version>0.15.0</version>
       <configuration>
         <packageExtension>
           <content-package>zip</content-package>
