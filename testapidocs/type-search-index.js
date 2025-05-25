@@ -1,1 +1,1 @@
-typeSearchIndex = [{"l":"All Classes","url":"allclasses-index.html"},{"p":"org.honton.chas.exists","l":"Verify.LineConsumer"},{"p":"org.honton.chas.exists","l":"Verify"}]
+typeSearchIndex = [{"l":"All Classes and Interfaces","u":"allclasses-index.html"},{"p":"org.honton.chas.exists","l":"Verify.LineConsumer"},{"p":"org.honton.chas.exists","l":"Verify"}];updateSearchResults();
