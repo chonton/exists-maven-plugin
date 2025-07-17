@@ -8,11 +8,10 @@ import org.apache.maven.plugin.MojoFailureException;
 public class GAV {
 
   // groupId:artifactId[:packaging]:version.
-  private static final Pattern GAV_PARSER = Pattern.compile("^([^:]+):([^:]+):([^:]+:)?([^:]+)$");
+  private static final Pattern GAV_PARSER = Pattern.compile("^([^:]+):([^:]+):(([^:]+):)?([^:]+)$");
 
   final String groupId;
   final String artifactId;
-  final String type;
   final String classifier;
   final String version;
   final String extension;
@@ -26,42 +25,39 @@ public class GAV {
     Matcher matcher = GAV_PARSER.matcher(project);
     if (!matcher.matches()) {
       throw new MojoFailureException(
-          "Project property must be in format groupId:artifactId:[type:]version");
+          "Project property must be in format groupId:artifactId:[packaging:]version");
     }
 
     groupId = matcher.group(1);
     artifactId = matcher.group(2);
-    String optional = matcher.group(3);
-    type = optional != null ? optional.substring(0, optional.length() - 1) : packaging;
-    classifier = configuredClassifier;
-    version = matcher.group(4);
-
-    extension = extension(packageExtensions, packaging);
+    String optional = matcher.group(4);
+    version = matcher.group(5);
+    String packagingType = packaging != null ? packaging : "jar";
+    classifier = configuredClassifier != null ? configuredClassifier : classifier(packagingType);
+    extension = extension(packageExtensions, optional != null ? optional : packagingType);
   }
 
-  // https://maven.apache.org/ref/3.9.3/maven-core/artifact-handlers.html
-  private static String extension(Map<String, String> packageExtensions, String packaging) {
-    if (packaging == null) {
-      packaging = "jar";
-    }
-    switch (packaging) {
-      case "pom":
-      case "jar":
-      case "war":
-      case "ear":
-      case "rar":
-        return packaging;
-      case "test-jar":
-      case "maven-plugin":
-      case "ejb":
-      case "ejb-client":
-      case "java-source":
-      case "java-doc":
-        return "jar";
-    }
-    return packageExtensions != null
-        ? packageExtensions.getOrDefault(packaging, packaging)
-        : packaging;
+  // https://maven.apache.org/ref/current/maven-core/artifact-handlers.html
+  private static String classifier(String packagingType) {
+    return switch (packagingType) {
+      case "test-jar" -> "tests";
+      case "ejb-client" -> "client";
+      case "java-source", "javadoc" -> "sources";
+      default -> null;
+    };
+  }
+
+  // https://maven.apache.org/ref/current/maven-core/artifact-handlers.html
+  private static String extension(Map<String, String> packageExtensions, String packagingType) {
+    return switch (packagingType) {
+      case "pom", "war", "ear", "rar" -> packagingType;
+      case "jar", "test-jar", "maven-plugin", "ejb", "ejb-client", "java-source", "javadoc" ->
+          "jar";
+      default ->
+          packageExtensions != null
+              ? packageExtensions.getOrDefault(packagingType, packagingType)
+              : packagingType;
+    };
   }
 
   // https://cwiki.apache.org/confluence/display/MAVEN/Remote+repository+layout

@@ -30,7 +30,8 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
   private MavenSession session;
 
   /**
-   * The project Group:Artifact:[:Type]:Version to compare. Defaults to the current project's GATV.
+   * The project Group:Artifact:[:Packaging]:Version to compare. Defaults to the current project's
+   * GAPV.
    */
   @Parameter(
       property = "exists.project",
@@ -226,7 +227,7 @@ public abstract class AbstractExistsMojo extends AbstractMojo {
       Versioning versioning = metadata.getVersioning();
 
       for (SnapshotVersion version : versioning.getSnapshotVersions()) {
-        if (gav.type.equals(version.getExtension())) {
+        if (gav.extension.equals(version.getExtension())) {
           getLog().debug("version=" + version.getVersion());
           setLastSnapshotTime(version.getUpdated());
           return getVersionedPath(version);
