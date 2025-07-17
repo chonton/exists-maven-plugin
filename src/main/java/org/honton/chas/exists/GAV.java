@@ -36,7 +36,7 @@ public class GAV {
     classifier = configuredClassifier;
     version = matcher.group(4);
 
-    extension = extension(packageExtensions, packaging);
+    extension = extension(packageExtensions, type);
   }
 
   // https://maven.apache.org/ref/3.9.3/maven-core/artifact-handlers.html
