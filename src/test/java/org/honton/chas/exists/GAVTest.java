@@ -1,7 +1,5 @@
 package org.honton.chas.exists;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import java.util.Map;
 import org.apache.maven.plugin.MojoFailureException;
 import org.junit.jupiter.api.Assertions;
@@ -14,6 +12,14 @@ class GAVTest {
     GAV gav = new GAV("groupId:artifactId:packaging:version", "packaging", "classifier", null);
     Assertions.assertEquals(
         "groupId/artifactId/version/artifactId-version-classifier.packaging",
+        gav.artifactLocation());
+  }
+
+  @Test
+  void artifactLocationTypeOverrides() throws MojoFailureException {
+    GAV gav = new GAV("groupId:artifactId:pom:version", "packaging", "classifier", null);
+    Assertions.assertEquals(
+        "groupId/artifactId/version/artifactId-version-classifier.pom",
         gav.artifactLocation());
   }
 
