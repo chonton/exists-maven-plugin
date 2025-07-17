@@ -57,7 +57,7 @@ In the following table `p:` indicates the default constituent properties are pre
     <plugin>
       <groupId>org.honton.chas</groupId>
       <artifactId>exists-maven-plugin</artifactId>
-      <version>0.15.0</version>
+      <version>0.15.1</version>
       <executions>
         <execution>
           <goals>
@@ -151,7 +151,7 @@ specify a zip extension with the following configuration:
     <plugin>
       <groupId>org.honton.chas</groupId>
       <artifactId>exists-maven-plugin</artifactId>
-      <version>0.15.0</version>
+      <version>0.15.1</version>
       <configuration>
         <packageExtension>
           <content-package>zip</content-package>

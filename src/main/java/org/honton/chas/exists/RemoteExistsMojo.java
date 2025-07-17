@@ -96,12 +96,10 @@ public class RemoteExistsMojo extends AbstractExistsMojo implements Contextualiz
   @Parameter(defaultValue = "${settings}", required = true, readonly = true)
   private Settings settings;
 
-  @Component(
-      role = org.sonatype.plexus.components.sec.dispatcher.SecDispatcher.class,
-      hint = "default")
+  @Component(role = SecDispatcher.class, hint = "default")
   private SecDispatcher securityDispatcher;
 
-  @Component(role = org.apache.maven.configuration.BeanConfigurator.class, hint = "default")
+  @Component(role = BeanConfigurator.class, hint = "default")
   private BeanConfigurator beanConfigurator;
 
   private PlexusContainer container;
