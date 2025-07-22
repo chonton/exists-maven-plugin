@@ -5,7 +5,7 @@
 
   <groupId>org.honton.chas</groupId>
   <artifactId>exists-maven-plugin</artifactId>
-  <version>0.15.1</version>
+  <version>0.15.2</version>
   <packaging>maven-plugin</packaging>
 
   <name>Artifact Exists Maven Plugin</name>
@@ -73,7 +73,7 @@
     <!-- use com.github.github:site-maven-plugin instead of org.apache.maven.plugins:maven-site-plugin -->
     <maven.site.deploy.skip>true</maven.site.deploy.skip>
 
-    <maven.version>3.9.6</maven.version>
+    <maven.version>3.9.4</maven.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
